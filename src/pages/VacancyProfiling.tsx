@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
@@ -28,17 +28,19 @@ export function VacancyProfiling() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    if (messages.length === 0) {
-      addAssistantMessage(
-        'Здравствуйте! Я AI-ассистент HR-Linkeon. Помогу создать глубинный профиль вакансии. Задам несколько вопросов, чтобы понять идеального кандидата для этой позиции.'
-      );
+    if (isInitialized.current) return;
+    isInitialized.current = true;
 
-      setTimeout(() => {
-        addAssistantMessage(PROFILING_QUESTIONS[0]);
-      }, 1000);
-    }
+    addAssistantMessage(
+      'Здравствуйте! Я AI-ассистент HR-Linkeon. Помогу создать глубинный профиль вакансии. Задам несколько вопросов, чтобы понять идеального кандидата для этой позиции.'
+    );
+
+    setTimeout(() => {
+      addAssistantMessage(PROFILING_QUESTIONS[0]);
+    }, 1000);
   }, []);
 
   const addAssistantMessage = (content: string) => {

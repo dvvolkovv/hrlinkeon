@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
@@ -24,25 +24,27 @@ export function CandidateScreening() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
     loadConversation();
   }, [candidateId]);
 
   const loadConversation = async () => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     try {
       await new Promise(resolve => setTimeout(resolve, 300));
 
       setConversationId(`mock-conversation-${candidateId}`);
 
-      if (messages.length === 0) {
-        addAssistantMessage(
-          'Здравствуйте! Я AI-ассистент компании. Задам несколько вопросов, чтобы лучше понять ваш опыт и подход к работе. Это займет всего 5-7 минут.'
-        );
-        setTimeout(() => {
-          addAssistantMessage(SCREENING_QUESTIONS[0]);
-        }, 1500);
-      }
+      addAssistantMessage(
+        'Здравствуйте! Я AI-ассистент компании. Задам несколько вопросов, чтобы лучше понять ваш опыт и подход к работе. Это займет всего 5-7 минут.'
+      );
+      setTimeout(() => {
+        addAssistantMessage(SCREENING_QUESTIONS[0]);
+      }, 1500);
     } catch (error) {
       console.error('Error loading conversation:', error);
     }
