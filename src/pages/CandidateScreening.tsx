@@ -35,12 +35,14 @@ export function CandidateScreening() {
 
       setConversationId(`mock-conversation-${candidateId}`);
 
-      addAssistantMessage(
-        'Здравствуйте! Я AI-ассистент компании. Задам несколько вопросов, чтобы лучше понять ваш опыт и подход к работе. Это займет всего 5-7 минут.'
-      );
-      setTimeout(() => {
-        addAssistantMessage(SCREENING_QUESTIONS[0]);
-      }, 1500);
+      if (messages.length === 0) {
+        addAssistantMessage(
+          'Здравствуйте! Я AI-ассистент компании. Задам несколько вопросов, чтобы лучше понять ваш опыт и подход к работе. Это займет всего 5-7 минут.'
+        );
+        setTimeout(() => {
+          addAssistantMessage(SCREENING_QUESTIONS[0]);
+        }, 1500);
+      }
     } catch (error) {
       console.error('Error loading conversation:', error);
     }
