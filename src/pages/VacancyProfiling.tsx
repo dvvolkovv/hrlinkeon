@@ -30,13 +30,15 @@ export function VacancyProfiling() {
   const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
-    addAssistantMessage(
-      'Здравствуйте! Я AI-ассистент HR-Linkeon. Помогу создать глубинный профиль вакансии. Задам несколько вопросов, чтобы понять идеального кандидата для этой позиции.'
-    );
+    if (messages.length === 0) {
+      addAssistantMessage(
+        'Здравствуйте! Я AI-ассистент HR-Linkeon. Помогу создать глубинный профиль вакансии. Задам несколько вопросов, чтобы понять идеального кандидата для этой позиции.'
+      );
 
-    setTimeout(() => {
-      addAssistantMessage(PROFILING_QUESTIONS[0]);
-    }, 1000);
+      setTimeout(() => {
+        addAssistantMessage(PROFILING_QUESTIONS[0]);
+      }, 1000);
+    }
   }, []);
 
   const addAssistantMessage = (content: string) => {
