@@ -6,7 +6,7 @@ import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
 import { Button } from '../components/ui/Button';
 import { mockStorage } from '../lib/mockData';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, FileText, Edit3, Upload } from 'lucide-react';
 
 interface VacancyForm {
   title: string;
@@ -21,8 +21,11 @@ interface VacancyForm {
   responsibilities: string;
 }
 
+type CreationMode = 'select' | 'manual' | 'upload';
+
 export function CreateVacancy() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState<CreationMode>('select');
   const [form, setForm] = useState<VacancyForm>({
     title: '',
     department: '',
@@ -38,6 +41,7 @@ export function CreateVacancy() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,13 +81,193 @@ export function CreateVacancy() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+    setError(null);
+  };
+
+  const handleUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadedFile) {
+      setError('Выберите файл для загрузки');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const slug = 'uploaded-vacancy-' + Date.now();
+
+      const vacancy = mockStorage.createVacancy({
+        hr_user_id: null,
+        title: uploadedFile.name.replace(/\.[^/.]+$/, ''),
+        department: 'Не указан',
+        level: 'middle',
+        experience_years: 0,
+        salary_min: null,
+        salary_max: null,
+        work_format: 'remote',
+        work_schedule: 'full',
+        requirements: 'Загружено из файла',
+        responsibilities: 'Загружено из файла',
+        slug,
+        status: 'draft',
+      });
+
+      navigate(`/vacancy/${vacancy.id}/profiling`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке файла');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (mode === 'select') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-forest-600 rounded-lg">
+                <Briefcase className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Создание вакансии</h1>
+            </div>
+            <p className="text-gray-600">Выберите способ создания вакансии</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card
+              className="cursor-pointer transition-all hover:shadow-xl hover:scale-105 group"
+              onClick={() => setMode('manual')}
+            >
+              <CardContent className="p-8 text-center">
+                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-forest-500 to-forest-600 rounded-2xl group-hover:from-forest-600 group-hover:to-forest-700 transition-all">
+                  <Edit3 className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Заполнить вручную</h3>
+                <p className="text-gray-600">
+                  Введите все данные о вакансии самостоятельно через форму
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer transition-all hover:shadow-xl hover:scale-105 group"
+              onClick={() => setMode('upload')}
+            >
+              <CardContent className="p-8 text-center">
+                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-warm-500 to-warm-600 rounded-2xl group-hover:from-warm-600 group-hover:to-warm-700 transition-all">
+                  <Upload className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Загрузить файл</h3>
+                <p className="text-gray-600">
+                  Загрузите готовое описание вакансии в формате PDF, DOCX или TXT
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-6">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/recruiter')}
+              className="w-full md:w-auto"
+            >
+              Отмена
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'upload') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-warm-600 rounded-lg">
+                <Upload className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Загрузка вакансии</h1>
+            </div>
+            <p className="text-gray-600">Загрузите файл с описанием вакансии</p>
+          </div>
+
+          <Card>
+            <form onSubmit={handleUploadSubmit}>
+              <CardContent className="space-y-6">
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                    {error}
+                  </div>
+                )}
+
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-warm-500 transition-colors">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    accept=".pdf,.doc,.docx,.txt"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-warm-100 rounded-full">
+                      <FileText className="w-8 h-8 text-warm-600" />
+                    </div>
+                    <div className="mb-2">
+                      {uploadedFile ? (
+                        <p className="text-lg font-medium text-gray-900">{uploadedFile.name}</p>
+                      ) : (
+                        <>
+                          <p className="text-lg font-medium text-gray-900 mb-1">
+                            Нажмите для выбора файла
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Поддерживаемые форматы: PDF, DOC, DOCX, TXT
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </label>
+                </div>
+
+                <div className="flex gap-4">
+                  <Button type="submit" disabled={loading || !uploadedFile} className="flex-1">
+                    {loading ? 'Загрузка...' : 'Продолжить'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={loading}
+                    onClick={() => setMode('select')}
+                  >
+                    Назад
+                  </Button>
+                </div>
+              </CardContent>
+            </form>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-forest-600 rounded-lg">
-              <Briefcase className="w-6 h-6 text-white" />
+              <Edit3 className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Создание вакансии</h1>
           </div>
@@ -214,9 +398,9 @@ export function CreateVacancy() {
                   type="button"
                   variant="outline"
                   disabled={loading}
-                  onClick={() => navigate('/recruiter')}
+                  onClick={() => setMode('select')}
                 >
-                  Отмена
+                  Назад
                 </Button>
               </div>
             </CardContent>
