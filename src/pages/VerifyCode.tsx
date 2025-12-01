@@ -83,13 +83,33 @@ export function VerifyCode() {
     setError('');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 600));
+      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
 
-      const mockRecruiterId = 'demo-recruiter-' + Date.now();
+      if (!hrLinkeonUrl) {
+        throw new Error('HR Linkeon URL не настроен');
+      }
 
-      console.log(`[DEMO MODE] Код ${codeString} принят для ${phone}`);
+      const verifyUrl = hrLinkeonUrl.replace('/send-code', '/verify-code');
 
-      localStorage.setItem('recruiter_id', mockRecruiterId);
+      const response = await fetch(verifyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, code: codeString }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Неверный код');
+      }
+
+      console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone}`);
+
+      const recruiterId = data.recruiter_id || 'recruiter-' + Date.now();
+
+      localStorage.setItem('recruiter_id', recruiterId);
       localStorage.setItem('recruiter_phone', phone);
       navigate('/recruiter');
     } catch (err) {
@@ -108,9 +128,27 @@ export function VerifyCode() {
     setError('');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
 
-      console.log(`[DEMO MODE] Повторная отправка SMS кода для ${phone}: 123456`);
+      if (!hrLinkeonUrl) {
+        throw new Error('HR Linkeon URL не настроен');
+      }
+
+      const response = await fetch(hrLinkeonUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка отправки кода');
+      }
+
+      console.log(`[SUCCESS] Повторная отправка SMS кода для ${phone}`);
 
       setResendTimer(60);
       setCode(['', '', '', '', '', '']);
