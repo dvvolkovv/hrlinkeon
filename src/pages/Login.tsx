@@ -72,7 +72,9 @@ export function Login() {
         throw new Error('HR Linkeon URL не настроен');
       }
 
-      const response = await fetch(hrLinkeonUrl, {
+      const sendCodeUrl = `${hrLinkeonUrl}/webhook/api/auth/send-code`;
+
+      const response = await fetch(sendCodeUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
