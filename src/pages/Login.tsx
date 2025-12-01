@@ -66,10 +66,27 @@ export function Login() {
 
     try {
       const cleanPhone = '+' + phone.replace(/\D/g, '');
+      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
 
-      await new Promise(resolve => setTimeout(resolve, 800));
+      if (!hrLinkeonUrl) {
+        throw new Error('HR Linkeon URL не настроен');
+      }
 
-      console.log(`[DEMO MODE] SMS код для ${cleanPhone}: 123456`);
+      const response = await fetch(hrLinkeonUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: cleanPhone }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка отправки кода');
+      }
+
+      console.log(`[SUCCESS] SMS код отправлен на ${cleanPhone}`);
 
       navigate('/verify-code', { state: { phone: cleanPhone } });
     } catch (err) {
