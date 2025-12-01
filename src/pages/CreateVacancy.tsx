@@ -6,7 +6,7 @@ import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
 import { Button } from '../components/ui/Button';
 import { mockStorage } from '../lib/mockData';
-import { Briefcase, FileText, Edit3, Upload } from 'lucide-react';
+import { Briefcase, FileText, Edit3, Upload, Link as LinkIcon } from 'lucide-react';
 
 interface VacancyForm {
   title: string;
@@ -21,7 +21,7 @@ interface VacancyForm {
   responsibilities: string;
 }
 
-type CreationMode = 'select' | 'manual' | 'upload';
+type CreationMode = 'select' | 'manual' | 'upload' | 'link';
 
 export function CreateVacancy() {
   const navigate = useNavigate();
@@ -42,6 +42,7 @@ export function CreateVacancy() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [vacancyUrl, setVacancyUrl] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +129,45 @@ export function CreateVacancy() {
     }
   };
 
+  const handleLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!vacancyUrl.trim()) {
+      setError('Введите ссылку на вакансию');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const slug = 'linked-vacancy-' + Date.now();
+
+      const vacancy = mockStorage.createVacancy({
+        hr_user_id: null,
+        title: 'Вакансия из ссылки',
+        department: 'Не указан',
+        level: 'middle',
+        experience_years: 0,
+        salary_min: null,
+        salary_max: null,
+        work_format: 'remote',
+        work_schedule: 'full',
+        requirements: `Импортировано из: ${vacancyUrl}`,
+        responsibilities: `Импортировано из: ${vacancyUrl}`,
+        slug,
+        status: 'draft',
+      });
+
+      navigate(`/vacancy/${vacancy.id}/profiling`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке вакансии');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (mode === 'select') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
@@ -142,7 +182,7 @@ export function CreateVacancy() {
             <p className="text-gray-600">Выберите способ создания вакансии</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             <Card
               className="cursor-pointer transition-all hover:shadow-xl hover:scale-105 group"
               onClick={() => setMode('manual')}
@@ -169,6 +209,21 @@ export function CreateVacancy() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Загрузить файл</h3>
                 <p className="text-gray-600">
                   Загрузите готовое описание вакансии в формате PDF, DOCX или TXT
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer transition-all hover:shadow-xl hover:scale-105 group"
+              onClick={() => setMode('link')}
+            >
+              <CardContent className="p-8 text-center">
+                <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl group-hover:from-blue-600 group-hover:to-blue-700 transition-all">
+                  <LinkIcon className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Вставить ссылку</h3>
+                <p className="text-gray-600">
+                  Предоставьте ссылку на существующую вакансию с сайта
                 </p>
               </CardContent>
             </Card>
@@ -242,6 +297,78 @@ export function CreateVacancy() {
 
                 <div className="flex gap-4">
                   <Button type="submit" disabled={loading || !uploadedFile} className="flex-1">
+                    {loading ? 'Загрузка...' : 'Продолжить'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={loading}
+                    onClick={() => setMode('select')}
+                  >
+                    Назад
+                  </Button>
+                </div>
+              </CardContent>
+            </form>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'link') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <LinkIcon className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Импорт по ссылке</h1>
+            </div>
+            <p className="text-gray-600">Вставьте ссылку на вакансию с HeadHunter, SuperJob или другого сайта</p>
+          </div>
+
+          <Card>
+            <form onSubmit={handleLinkSubmit}>
+              <CardContent className="space-y-6">
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                    {error}
+                  </div>
+                )}
+
+                <div>
+                  <Input
+                    label="Ссылка на вакансию"
+                    type="url"
+                    value={vacancyUrl}
+                    onChange={(e) => setVacancyUrl(e.target.value)}
+                    placeholder="https://hh.ru/vacancy/12345678"
+                    required
+                  />
+                  <p className="mt-2 text-sm text-gray-500">
+                    Поддерживаются ссылки с HeadHunter, SuperJob, Avito и других популярных площадок
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0">
+                      <LinkIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+                    </div>
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Как это работает?</p>
+                      <p className="text-blue-700">
+                        Мы автоматически извлечем информацию о вакансии по ссылке и заполним профиль
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <Button type="submit" disabled={loading || !vacancyUrl.trim()} className="flex-1">
                     {loading ? 'Загрузка...' : 'Продолжить'}
                   </Button>
                   <Button
