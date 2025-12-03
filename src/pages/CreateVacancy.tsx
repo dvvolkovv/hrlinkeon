@@ -185,7 +185,10 @@ export function CreateVacancy() {
           <div className="grid md:grid-cols-3 gap-6">
             <Card
               className="cursor-pointer transition-all hover:shadow-xl hover:scale-105 group"
-              onClick={() => navigate('/create-vacancy/manual')}
+              onClick={() => {
+                console.log('Navigating to /create-vacancy/manual');
+                navigate('/create-vacancy/manual');
+              }}
             >
               <CardContent className="p-8 text-center">
                 <div className="mb-6 inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-forest-500 to-forest-600 rounded-2xl group-hover:from-forest-600 group-hover:to-forest-700 transition-all">
