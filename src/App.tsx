@@ -3,6 +3,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { VerifyCode } from './pages/VerifyCode';
 import { CreateVacancy } from './pages/CreateVacancy';
+import { CreateVacancyManual } from './pages/CreateVacancyManual';
 import { VacancyProfiling } from './pages/VacancyProfiling';
 import { PublicVacancy } from './pages/PublicVacancy';
 import { CandidateScreening } from './pages/CandidateScreening';
@@ -21,6 +22,7 @@ function App() {
         <Route path="/recruiter" element={<RecruiterDashboard />} />
         <Route path="/buy-tokens" element={<BuyTokens />} />
         <Route path="/create-vacancy" element={<CreateVacancy />} />
+        <Route path="/create-vacancy/manual" element={<CreateVacancyManual />} />
         <Route path="/vacancy/:id/profiling" element={<VacancyProfiling />} />
         <Route path="/vacancy/:slug" element={<PublicVacancy />} />
         <Route path="/candidate/:candidateId/screening" element={<CandidateScreening />} />
