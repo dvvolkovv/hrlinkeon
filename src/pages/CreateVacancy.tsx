@@ -101,22 +101,51 @@ export function CreateVacancy() {
     setError(null);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        setError('Пользователь не авторизован');
+        navigate('/login');
+        return;
+      }
+
+      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
+      if (!hrLinkeonUrl) {
+        throw new Error('HR Linkeon URL не настроен');
+      }
+
+      const formData = new FormData();
+      formData.append('document', uploadedFile);
+
+      const bodyData = JSON.stringify({ user_id: userId });
+      const bodyBlob = new Blob([bodyData], { type: 'application/json' });
+      formData.append('body', bodyBlob);
+
+      const response = await fetch(`${hrLinkeonUrl}/webhook/hrcscan`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Ошибка при загрузке файла');
+      }
+
+      const data = await response.json();
 
       const slug = 'uploaded-vacancy-' + Date.now();
 
       const vacancy = mockStorage.createVacancy({
         hr_user_id: null,
-        title: uploadedFile.name.replace(/\.[^/.]+$/, ''),
-        department: 'Не указан',
-        level: 'middle',
-        experience_years: 0,
-        salary_min: null,
-        salary_max: null,
-        work_format: 'remote',
-        work_schedule: 'full',
-        requirements: 'Загружено из файла',
-        responsibilities: 'Загружено из файла',
+        title: data.title || uploadedFile.name.replace(/\.[^/.]+$/, ''),
+        department: data.department || 'Не указан',
+        level: data.level || 'middle',
+        experience_years: data.experience_years || 0,
+        salary_min: data.salary_min || null,
+        salary_max: data.salary_max || null,
+        work_format: data.work_format || 'remote',
+        work_schedule: data.work_schedule || 'full',
+        requirements: data.requirements || 'Загружено из файла',
+        responsibilities: data.responsibilities || 'Загружено из файла',
         slug,
         status: 'draft',
       });
