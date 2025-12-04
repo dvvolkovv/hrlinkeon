@@ -115,10 +115,7 @@ export function CreateVacancy() {
 
       const formData = new FormData();
       formData.append('document', uploadedFile);
-
-      const bodyData = JSON.stringify({ user_id: userId });
-      const bodyBlob = new Blob([bodyData], { type: 'application/json' });
-      formData.append('body', bodyBlob);
+      formData.append('user_id', userId);
 
       const response = await fetch(`${hrLinkeonUrl}/webhook/hrcscan`, {
         method: 'POST',
