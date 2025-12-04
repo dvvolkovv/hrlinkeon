@@ -101,15 +101,17 @@ export function VerifyCode() {
 
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok) {
         throw new Error(data.error || 'Неверный код');
+      }
+
+      if (!data.user_id) {
+        throw new Error('user_id не получен от сервера');
       }
 
       console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone}`);
 
-      const recruiterId = data.recruiter_id || 'recruiter-' + Date.now();
-
-      localStorage.setItem('recruiter_id', recruiterId);
+      localStorage.setItem('user_id', data.user_id);
       localStorage.setItem('recruiter_phone', phone);
       navigate('/recruiter');
     } catch (err) {

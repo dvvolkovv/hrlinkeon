@@ -33,8 +33,8 @@ export function BuyTokens() {
 
   const loadData = async () => {
     try {
-      const recruiterId = localStorage.getItem('recruiter_id');
-      if (!recruiterId) {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
         navigate('/login');
         return;
       }
@@ -65,8 +65,8 @@ export function BuyTokens() {
     setPurchasing(tariff.id);
 
     try {
-      const recruiterId = localStorage.getItem('recruiter_id');
-      if (!recruiterId) {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
         navigate('/login');
         return;
       }
