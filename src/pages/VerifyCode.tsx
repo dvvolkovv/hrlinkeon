@@ -101,19 +101,21 @@ export function VerifyCode() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      console.log('Verify response:', { status: response.status, data });
+
+      if (data.user_id) {
+        console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone}`);
+        localStorage.setItem('user_id', data.user_id);
+        localStorage.setItem('recruiter_phone', phone);
+        navigate('/recruiter');
+        return;
+      }
+
+      if (!response.ok || data.error) {
         throw new Error(data.error || 'Неверный код');
       }
 
-      if (!data.user_id) {
-        throw new Error('user_id не получен от сервера');
-      }
-
-      console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone}`);
-
-      localStorage.setItem('user_id', data.user_id);
-      localStorage.setItem('recruiter_phone', phone);
-      navigate('/recruiter');
+      throw new Error('user_id не получен от сервера');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при проверке кода');
       setCode(['', '', '', '', '', '']);
