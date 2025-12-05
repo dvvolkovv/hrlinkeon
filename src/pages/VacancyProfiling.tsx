@@ -4,11 +4,26 @@ import { Card, CardContent } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
 import { Check, Sparkles } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface Message {
   role: 'assistant' | 'user';
   content: string;
   timestamp: string;
+}
+
+interface VacancyProfileData {
+  company: any;
+  role_context: any;
+  responsibilities: any[];
+  hard_skills: any[];
+  soft_skills: any[];
+  values: any[];
+  motivation_profile: any;
+  anti_profile: any;
+  conditions: any;
+  hiring_process: any;
+  pitch: string;
 }
 
 export function VacancyProfiling() {
@@ -17,7 +32,9 @@ export function VacancyProfiling() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [vacancyProfile, setVacancyProfile] = useState<VacancyProfileData | null>(null);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [profileReady, setProfileReady] = useState(false);
   const isInitialized = useRef(false);
   const totalQuestions = 7;
 
@@ -56,6 +73,52 @@ export function VacancyProfiling() {
         timestamp: new Date().toISOString(),
       },
     ]);
+  };
+
+  const saveVacancyProfile = async (profileData: VacancyProfileData, vacancyId: string) => {
+    try {
+      const { data: existingProfile } = await supabase
+        .from('vacancy_profiles')
+        .select('id')
+        .eq('vacancy_id', vacancyId)
+        .maybeSingle();
+
+      const profilePayload = {
+        vacancy_id: vacancyId,
+        full_profile_data: profileData,
+        pitch: profileData.pitch || '',
+        hard_skills: profileData.hard_skills || [],
+        soft_skills: profileData.soft_skills || [],
+        values: profileData.values || [],
+        red_flags: profileData.anti_profile || {},
+        updated_at: new Date().toISOString(),
+      };
+
+      if (existingProfile) {
+        const { error } = await supabase
+          .from('vacancy_profiles')
+          .update(profilePayload)
+          .eq('vacancy_id', vacancyId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('vacancy_profiles')
+          .insert(profilePayload);
+
+        if (error) throw error;
+      }
+
+      const { error: vacancyError } = await supabase
+        .from('vacancies')
+        .update({ status: 'published' })
+        .eq('id', vacancyId);
+
+      if (vacancyError) throw vacancyError;
+    } catch (error) {
+      console.error('Error saving vacancy profile:', error);
+      throw error;
+    }
   };
 
   const sendMessageToAPI = async (message: string, userId: string, vacancyId: string) => {
@@ -105,6 +168,22 @@ export function VacancyProfiling() {
 
         try {
           const jsonData = JSON.parse(line);
+
+          if (jsonData.type === 'vacancy_profile' && jsonData.is_ready && jsonData.vacancy) {
+            setVacancyProfile(jsonData.vacancy);
+            setProfileReady(true);
+
+            try {
+              await saveVacancyProfile(jsonData.vacancy, vacancyId);
+              setTimeout(() => {
+                setIsCompleted(true);
+              }, 1000);
+            } catch (error) {
+              console.error('Error saving profile:', error);
+            }
+            continue;
+          }
+
           if (jsonData.type === 'item' && jsonData.content) {
             assistantMessage += jsonData.content;
 
@@ -166,15 +245,7 @@ export function VacancyProfiling() {
 
     try {
       await sendMessageToAPI(content, userId, vacancyId);
-
-      const newQuestionsAnswered = questionsAnswered + 1;
-      setQuestionsAnswered(newQuestionsAnswered);
-
-      if (newQuestionsAnswered >= totalQuestions) {
-        setTimeout(() => {
-          setIsCompleted(true);
-        }, 2000);
-      }
+      setQuestionsAnswered((prev) => prev + 1);
     } catch (error) {
       addAssistantMessage('Произошла ошибка при отправке сообщения. Попробуйте еще раз.');
       setIsProcessing(false);
@@ -187,14 +258,23 @@ export function VacancyProfiling() {
     }
   };
 
-  if (isCompleted) {
+  if (isCompleted && vacancyProfile) {
+    const profileComponents = [];
+
+    if (vacancyProfile.role_context) profileComponents.push('Контекст роли и KPI');
+    if (vacancyProfile.hard_skills?.length > 0) profileComponents.push(`Hard skills (${vacancyProfile.hard_skills.length})`);
+    if (vacancyProfile.soft_skills?.length > 0) profileComponents.push(`Soft skills (${vacancyProfile.soft_skills.length})`);
+    if (vacancyProfile.values?.length > 0) profileComponents.push(`Ценности (${vacancyProfile.values.length})`);
+    if (vacancyProfile.motivation_profile) profileComponents.push('Профиль мотивации');
+    if (vacancyProfile.anti_profile) profileComponents.push('Красные флаги');
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <Card>
             <CardContent className="py-12 text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check className="w-8 h-8 text-primary-600" />
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check className="w-8 h-8 text-green-600" />
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -206,17 +286,16 @@ export function VacancyProfiling() {
                 кандидата со следующими компонентами:
               </p>
 
+              {vacancyProfile.pitch && (
+                <div className="mb-8 p-4 bg-forest-50 rounded-lg max-w-2xl mx-auto">
+                  <p className="text-sm text-gray-700 italic">{vacancyProfile.pitch}</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto text-left">
-                {[
-                  'Миссия роли и KPI',
-                  'Hard skills профиль',
-                  'Soft skills профиль',
-                  'Ценностный профиль',
-                  'Поведенческий портрет',
-                  'Красные флаги',
-                ].map((item, index) => (
+                {profileComponents.map((item, index) => (
                   <div key={index} className="flex items-center gap-2 p-3 bg-forest-50 rounded-lg">
-                    <Check className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
                     <span className="text-sm font-medium text-gray-700">{item}</span>
                   </div>
                 ))}
@@ -224,7 +303,7 @@ export function VacancyProfiling() {
 
               <Button size="lg" onClick={handleFinish} className="gap-2">
                 <Sparkles className="w-5 h-5" />
-                Опубликовать вакансию
+                Перейти к вакансии
               </Button>
             </CardContent>
           </Card>
@@ -236,24 +315,26 @@ export function VacancyProfiling() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Профилирование вакансии
-            </h1>
-            <span className="text-sm text-gray-600">
-              Вопрос {questionsAnswered} из {totalQuestions}
-            </span>
+        {!profileReady && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-2xl font-bold text-gray-900">
+                Профилирование вакансии
+              </h1>
+              <span className="text-sm text-gray-600">
+                Вопрос {questionsAnswered} из {totalQuestions}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-forest-500 to-forest-600 h-2 rounded-full transition-all duration-500"
+                style={{
+                  width: `${(questionsAnswered / totalQuestions) * 100}%`,
+                }}
+              />
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-forest-500 to-forest-600 h-2 rounded-full transition-all duration-500"
-              style={{
-                width: `${(questionsAnswered / totalQuestions) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
+        )}
 
         <Card className="h-[600px] flex flex-col">
           <AIChat
