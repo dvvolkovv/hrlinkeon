@@ -129,13 +129,11 @@ export function CreateVacancy() {
 
       const responseData = await response.json();
 
-      if (!Array.isArray(responseData) || responseData.length === 0) {
+      if (!responseData.success || !responseData.vacancy_id) {
         throw new Error('Некорректный формат ответа от сервера');
       }
 
-      const vacancyResponse = responseData[0];
-      const vacancyId = vacancyResponse.id;
-      const vacancyData = vacancyResponse.vacancy_data;
+      const vacancyId = responseData.vacancy_id;
 
       localStorage.setItem('current_vacancy_id', vacancyId);
 
