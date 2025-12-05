@@ -295,34 +295,55 @@ export function CreateVacancy() {
                   </div>
                 )}
 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-warm-500 transition-colors">
-                  <input
-                    type="file"
-                    id="file-upload"
-                    accept=".pdf,.doc,.docx,.txt"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-warm-100 rounded-full">
-                      <FileText className="w-8 h-8 text-warm-600" />
+                {loading && (
+                  <div className="p-8 bg-warm-50 border-2 border-warm-200 rounded-lg">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 border-4 border-warm-200 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-warm-600 rounded-full border-t-transparent animate-spin"></div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-medium text-gray-900 mb-1">
+                          Обрабатываем ваш файл...
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Это может занять несколько секунд
+                        </p>
+                      </div>
                     </div>
-                    <div className="mb-2">
-                      {uploadedFile ? (
-                        <p className="text-lg font-medium text-gray-900">{uploadedFile.name}</p>
-                      ) : (
-                        <>
-                          <p className="text-lg font-medium text-gray-900 mb-1">
-                            Нажмите для выбора файла
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Поддерживаемые форматы: PDF, DOC, DOCX, TXT
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </label>
-                </div>
+                  </div>
+                )}
+
+                {!loading && (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-warm-500 transition-colors">
+                    <input
+                      type="file"
+                      id="file-upload"
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-warm-100 rounded-full">
+                        <FileText className="w-8 h-8 text-warm-600" />
+                      </div>
+                      <div className="mb-2">
+                        {uploadedFile ? (
+                          <p className="text-lg font-medium text-gray-900">{uploadedFile.name}</p>
+                        ) : (
+                          <>
+                            <p className="text-lg font-medium text-gray-900 mb-1">
+                              Нажмите для выбора файла
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Поддерживаемые форматы: PDF, DOC, DOCX, TXT
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                )}
 
                 <div className="flex gap-4">
                   <Button type="submit" disabled={loading || !uploadedFile} className="flex-1">
