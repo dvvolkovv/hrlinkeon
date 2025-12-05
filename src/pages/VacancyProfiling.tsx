@@ -87,6 +87,7 @@ export function VacancyProfiling() {
 
     let assistantMessage = '';
     const assistantMessageIndex = messages.length + 1;
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -94,7 +95,23 @@ export function VacancyProfiling() {
       if (done) break;
 
       const chunk = decoder.decode(value, { stream: true });
-      assistantMessage += chunk;
+      buffer += chunk;
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+
+        try {
+          const jsonData = JSON.parse(line);
+          if (jsonData.type === 'item' && jsonData.content) {
+            assistantMessage += jsonData.content;
+          }
+        } catch (e) {
+          console.warn('Failed to parse JSON line:', line);
+        }
+      }
 
       setMessages((prev) => {
         const newMessages = [...prev];
