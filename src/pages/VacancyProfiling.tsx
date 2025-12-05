@@ -11,37 +11,42 @@ interface Message {
   timestamp: string;
 }
 
-const PROFILING_QUESTIONS = [
-  'Расскажите, какую основную проблему должна решить эта позиция?',
-  'Что должен сделать сотрудник за первые 90 дней работы?',
-  'Опишите стиль руководителя, с которым будет работать сотрудник.',
-  'Какие ценности важны в вашей команде?',
-  'Какие качества категорически неприемлемы для этой позиции?',
-  'Опишите темп работы в компании: размеренный или быстрый?',
-  'Были ли конфликты с предыдущими сотрудниками на этой позиции? Если да, в чем причина?',
-];
-
 export function VacancyProfiling() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
   const isInitialized = useRef(false);
+  const totalQuestions = 7;
 
   useEffect(() => {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    addAssistantMessage(
-      'Здравствуйте! Я AI-ассистент HR-Linkeon. Помогу создать глубинный профиль вакансии. Задам несколько вопросов, чтобы понять идеального кандидата для этой позиции.'
-    );
-
-    setTimeout(() => {
-      addAssistantMessage(PROFILING_QUESTIONS[0]);
-    }, 1000);
+    sendInitialMessage();
   }, []);
+
+  const sendInitialMessage = async () => {
+    const userId = localStorage.getItem('user_id');
+    const vacancyId = id || localStorage.getItem('current_vacancy_id');
+
+    if (!userId || !vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      await sendMessageToAPI('Привет!', userId, vacancyId);
+    } catch (error) {
+      addAssistantMessage('Произошла ошибка при инициализации чата. Попробуйте обновить страницу.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const addAssistantMessage = (content: string) => {
     setMessages((prev) => [
@@ -54,7 +59,76 @@ export function VacancyProfiling() {
     ]);
   };
 
-  const handleSendMessage = (content: string) => {
+  const sendMessageToAPI = async (message: string, userId: string, vacancyId: string) => {
+    const apiUrl = 'https://nomira-ai-test.up.railway.app/webhook/rec/chat';
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chatInput: message,
+        current_vacancy_id: vacancyId,
+        user_id: userId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Ошибка при получении ответа от сервера');
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error('Не удалось получить reader из ответа');
+    }
+
+    let assistantMessage = '';
+    const assistantMessageIndex = messages.length + 1;
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      assistantMessage += chunk;
+
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const existingMessageIndex = newMessages.findIndex(
+          (msg, idx) => idx === assistantMessageIndex && msg.role === 'assistant'
+        );
+
+        if (existingMessageIndex !== -1) {
+          newMessages[existingMessageIndex] = {
+            ...newMessages[existingMessageIndex],
+            content: assistantMessage,
+          };
+        } else {
+          newMessages.push({
+            role: 'assistant',
+            content: assistantMessage,
+            timestamp: new Date().toISOString(),
+          });
+        }
+
+        return newMessages;
+      });
+    }
+  };
+
+  const handleSendMessage = async (content: string) => {
+    const userId = localStorage.getItem('user_id');
+    const vacancyId = id || localStorage.getItem('current_vacancy_id');
+
+    if (!userId || !vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+      return;
+    }
+
     setMessages((prev) => [
       ...prev,
       {
@@ -66,28 +140,22 @@ export function VacancyProfiling() {
 
     setIsProcessing(true);
 
-    setTimeout(() => {
-      const nextQuestion = currentQuestion + 1;
+    try {
+      await sendMessageToAPI(content, userId, vacancyId);
 
-      if (nextQuestion < PROFILING_QUESTIONS.length) {
-        addAssistantMessage('Спасибо за ответ!');
+      const newQuestionsAnswered = questionsAnswered + 1;
+      setQuestionsAnswered(newQuestionsAnswered);
 
-        setTimeout(() => {
-          addAssistantMessage(PROFILING_QUESTIONS[nextQuestion]);
-          setCurrentQuestion(nextQuestion);
-          setIsProcessing(false);
-        }, 1000);
-      } else {
-        addAssistantMessage(
-          'Отлично! Я собрал всю необходимую информацию. Сейчас создам детальный профиль идеального кандидата...'
-        );
-
+      if (newQuestionsAnswered >= totalQuestions) {
         setTimeout(() => {
           setIsCompleted(true);
-          setIsProcessing(false);
         }, 2000);
       }
-    }, 1500);
+    } catch (error) {
+      addAssistantMessage('Произошла ошибка при отправке сообщения. Попробуйте еще раз.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleFinish = () => {
@@ -151,14 +219,14 @@ export function VacancyProfiling() {
               Профилирование вакансии
             </h1>
             <span className="text-sm text-gray-600">
-              Вопрос {currentQuestion + 1} из {PROFILING_QUESTIONS.length}
+              Вопрос {questionsAnswered} из {totalQuestions}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-gradient-to-r from-forest-500 to-forest-600 h-2 rounded-full transition-all duration-500"
               style={{
-                width: `${((currentQuestion + 1) / PROFILING_QUESTIONS.length) * 100}%`,
+                width: `${(questionsAnswered / totalQuestions) * 100}%`,
               }}
             />
           </div>
