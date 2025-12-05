@@ -44,7 +44,7 @@ export function AIChat({
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.map((message, index) => (
+        {messages.filter(message => message.role === 'user' || message.content.trim()).map((message, index) => (
           <div
             key={index}
             className={`flex gap-3 ${

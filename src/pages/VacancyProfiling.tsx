@@ -43,7 +43,6 @@ export function VacancyProfiling() {
       await sendMessageToAPI('Привет!', userId, vacancyId);
     } catch (error) {
       addAssistantMessage('Произошла ошибка при инициализации чата. Попробуйте обновить страницу.');
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -88,6 +87,7 @@ export function VacancyProfiling() {
     let assistantMessage = '';
     const assistantMessageIndex = messages.length + 1;
     let buffer = '';
+    let hasReceivedContent = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -107,6 +107,11 @@ export function VacancyProfiling() {
           const jsonData = JSON.parse(line);
           if (jsonData.type === 'item' && jsonData.content) {
             assistantMessage += jsonData.content;
+
+            if (!hasReceivedContent && assistantMessage.trim()) {
+              hasReceivedContent = true;
+              setIsProcessing(false);
+            }
           } else if (jsonData.type === 'begin') {
             continue;
           }
@@ -172,7 +177,6 @@ export function VacancyProfiling() {
       }
     } catch (error) {
       addAssistantMessage('Произошла ошибка при отправке сообщения. Попробуйте еще раз.');
-    } finally {
       setIsProcessing(false);
     }
   };
