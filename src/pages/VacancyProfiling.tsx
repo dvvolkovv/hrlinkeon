@@ -33,10 +33,8 @@ export function VacancyProfiling() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [vacancyProfile, setVacancyProfile] = useState<VacancyProfileData | null>(null);
-  const [questionsAnswered, setQuestionsAnswered] = useState(0);
   const [profileReady, setProfileReady] = useState(false);
   const isInitialized = useRef(false);
-  const totalQuestions = 7;
 
   useEffect(() => {
     if (isInitialized.current) return;
@@ -245,7 +243,6 @@ export function VacancyProfiling() {
 
     try {
       await sendMessageToAPI(content, userId, vacancyId);
-      setQuestionsAnswered((prev) => prev + 1);
     } catch (error) {
       addAssistantMessage('Произошла ошибка при отправке сообщения. Попробуйте еще раз.');
       setIsProcessing(false);
@@ -317,22 +314,9 @@ export function VacancyProfiling() {
       <div className="max-w-4xl mx-auto">
         {!profileReady && (
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Профилирование вакансии
-              </h1>
-              <span className="text-sm text-gray-600">
-                Вопрос {questionsAnswered} из {totalQuestions}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-gradient-to-r from-forest-500 to-forest-600 h-2 rounded-full transition-all duration-500"
-                style={{
-                  width: `${(questionsAnswered / totalQuestions) * 100}%`,
-                }}
-              />
-            </div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Профилирование вакансии
+            </h1>
           </div>
         )}
 
