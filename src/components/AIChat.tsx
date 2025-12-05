@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/Button';
 import { Send, Bot, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: 'assistant' | 'user';
@@ -65,7 +66,13 @@ export function AIChat({
                   : 'bg-gray-100 text-gray-900 rounded-bl-md shadow-sm'
               }`}
             >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              {message.role === 'assistant' ? (
+                <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:mt-2 prose-headings:mb-1 prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-forest-700 prose-code:bg-forest-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              )}
               <span
                 className={`text-xs mt-1 block ${
                   message.role === 'user' ? 'text-forest-100' : 'text-gray-500'

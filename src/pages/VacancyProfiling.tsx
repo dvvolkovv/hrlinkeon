@@ -107,6 +107,8 @@ export function VacancyProfiling() {
           const jsonData = JSON.parse(line);
           if (jsonData.type === 'item' && jsonData.content) {
             assistantMessage += jsonData.content;
+          } else if (jsonData.type === 'begin') {
+            continue;
           }
         } catch (e) {
           console.warn('Failed to parse JSON line:', line);
