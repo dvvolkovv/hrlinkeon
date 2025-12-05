@@ -127,27 +127,19 @@ export function CreateVacancy() {
         throw new Error(errorData.error || 'Ошибка при загрузке файла');
       }
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      const slug = 'uploaded-vacancy-' + Date.now();
+      if (!Array.isArray(responseData) || responseData.length === 0) {
+        throw new Error('Некорректный формат ответа от сервера');
+      }
 
-      const vacancy = mockStorage.createVacancy({
-        hr_user_id: null,
-        title: data.title || uploadedFile.name.replace(/\.[^/.]+$/, ''),
-        department: data.department || 'Не указан',
-        level: data.level || 'middle',
-        experience_years: data.experience_years || 0,
-        salary_min: data.salary_min || null,
-        salary_max: data.salary_max || null,
-        work_format: data.work_format || 'remote',
-        work_schedule: data.work_schedule || 'full',
-        requirements: data.requirements || 'Загружено из файла',
-        responsibilities: data.responsibilities || 'Загружено из файла',
-        slug,
-        status: 'draft',
-      });
+      const vacancyResponse = responseData[0];
+      const vacancyId = vacancyResponse.id;
+      const vacancyData = vacancyResponse.vacancy_data;
 
-      navigate(`/vacancy/${vacancy.id}/profiling`);
+      localStorage.setItem('current_vacancy_id', vacancyId);
+
+      navigate(`/vacancy/${vacancyId}/profiling`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке файла');
     } finally {
