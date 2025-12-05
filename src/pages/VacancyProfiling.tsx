@@ -219,6 +219,29 @@ export function VacancyProfiling() {
         return newMessages;
       });
     }
+
+    const trimmedMessage = assistantMessage.trim();
+    if (trimmedMessage.startsWith('{') && trimmedMessage.endsWith('}')) {
+      try {
+        const jsonData = JSON.parse(trimmedMessage);
+
+        if (jsonData.type === 'vacancy_profile' && jsonData.is_ready && jsonData.vacancy) {
+          setVacancyProfile(jsonData.vacancy);
+          setProfileReady(true);
+
+          try {
+            await saveVacancyProfile(jsonData.vacancy, vacancyId);
+            setTimeout(() => {
+              setIsCompleted(true);
+            }, 1000);
+          } catch (error) {
+            console.error('Error saving profile:', error);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse assistant message as JSON:', e);
+      }
+    }
   };
 
   const handleSendMessage = async (content: string) => {
