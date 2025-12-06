@@ -39,7 +39,7 @@ export function PublicVacancy() {
   const [rejectionDetails, setRejectionDetails] = useState<{ explanation?: string } | null>(null);
 
   const handleApplicationSuccess = (candidateId: string) => {
-    navigate(`/candidate/${candidateId}/screening`);
+    navigate(`/vacancy/${slug}/candidate/${candidateId}/status`);
   };
 
   const handleApplicationRejected = (message: string, details?: { explanation?: string }) => {
