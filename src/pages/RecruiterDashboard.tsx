@@ -20,6 +20,7 @@ import {
   LogOut,
   Edit,
   Send,
+  MessageSquare,
 } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
@@ -192,6 +193,17 @@ export function RecruiterDashboard() {
     }
   };
 
+  const handleOpenChat = (vacancyId: string) => {
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    const chatUrl = `https://nomira-ai-test.up.railway.app/webhook/rec/chat?user_id=${userId}&vacancy_id=${vacancyId}`;
+    window.open(chatUrl, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 flex items-center justify-center">
@@ -344,6 +356,15 @@ export function RecruiterDashboard() {
                         <span className="hidden sm:inline">Редактировать</span>
                       </Button>
                     </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleOpenChat(vacancy.id)}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span className="hidden sm:inline">Чат с AI</span>
+                    </Button>
                     {vacancy.status !== 'published' && (
                       <Button
                         variant="default"
