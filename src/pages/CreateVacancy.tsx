@@ -21,7 +21,7 @@ interface VacancyForm {
   responsibilities: string;
 }
 
-type CreationMode = 'select' | 'manual' | 'upload' | 'link';
+type CreationMode = 'select' | 'manual' | 'upload' | 'link' | 'review';
 
 export function CreateVacancy() {
   const navigate = useNavigate();
@@ -43,6 +43,7 @@ export function CreateVacancy() {
   const [error, setError] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [vacancyUrl, setVacancyUrl] = useState('');
+  const [currentVacancyId, setCurrentVacancyId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,12 +135,111 @@ export function CreateVacancy() {
       }
 
       const vacancyId = responseData.vacancy_id;
-
+      setCurrentVacancyId(vacancyId);
       localStorage.setItem('current_vacancy_id', vacancyId);
 
-      navigate(`/vacancy/${vacancyId}/profiling`);
+      await loadVacancyData(vacancyId, userId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке файла');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadVacancyData = async (vacancyId: string, userId: string) => {
+    try {
+      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
+      const response = await fetch(`${hrLinkeonUrl}/webhook/api/vacancies`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Не удалось загрузить данные вакансии');
+      }
+
+      const result = await response.json();
+      const vacancies = result.data || [];
+      const vacancy = vacancies.find((v: any) => v.id === vacancyId);
+
+      if (!vacancy) {
+        throw new Error('Вакансия не найдена');
+      }
+
+      setForm({
+        title: vacancy.title || '',
+        department: vacancy.department || '',
+        level: vacancy.level || 'middle',
+        experience_years: vacancy.vacancy_data?.experience_years || 0,
+        salary_min: vacancy.salary_from ? String(vacancy.salary_from) : '',
+        salary_max: vacancy.salary_to ? String(vacancy.salary_to) : '',
+        work_format: vacancy.format || 'remote',
+        work_schedule: vacancy.vacancy_data?.workload || 'full',
+        requirements: vacancy.vacancy_data?.requirements || '',
+        responsibilities: vacancy.vacancy_data?.responsibilities || '',
+      });
+
+      setMode('review');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка при загрузке данных вакансии');
+      setLoading(false);
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentVacancyId) {
+      setError('ID вакансии не найден');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        setError('Пользователь не авторизован');
+        navigate('/login');
+        return;
+      }
+
+      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
+      const response = await fetch(
+        `${hrLinkeonUrl}/webhook/hrlinkeon-update-vacancy/api/vacancies/${currentVacancyId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            title: form.title,
+            department: form.department,
+            level: form.level,
+            salary_from: form.salary_min ? Number(form.salary_min) : null,
+            salary_to: form.salary_max ? Number(form.salary_max) : null,
+            format: form.work_format,
+            vacancy_data: {
+              experience_years: Number(form.experience_years),
+              workload: form.work_schedule,
+              requirements: form.requirements,
+              responsibilities: form.responsibilities,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Не удалось обновить вакансию');
+      }
+
+      navigate(`/vacancy/${currentVacancyId}/profiling`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Произошла ошибка при обновлении вакансии');
     } finally {
       setLoading(false);
     }
@@ -344,6 +444,163 @@ export function CreateVacancy() {
                     variant="outline"
                     disabled={loading}
                     onClick={() => setMode('select')}
+                  >
+                    Назад
+                  </Button>
+                </div>
+              </CardContent>
+            </form>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'review') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-warm-600 rounded-lg">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Проверка и редактирование вакансии</h1>
+            </div>
+            <p className="text-gray-600">Проверьте данные вакансии и внесите изменения при необходимости</p>
+          </div>
+
+          <Card>
+            <form onSubmit={handleReviewSubmit}>
+              <CardHeader>
+                <h2 className="text-xl font-semibold text-gray-900">Информация о вакансии</h2>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                    {error}
+                  </div>
+                )}
+
+                <div className="p-4 bg-warm-50 border border-warm-200 rounded-lg">
+                  <p className="text-sm text-warm-800">
+                    <strong>Подсказка:</strong> Проверьте автоматически заполненные данные и отредактируйте их при необходимости перед переходом к следующему шагу.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Название вакансии"
+                      value={form.title}
+                      onChange={(e) => updateForm('title', e.target.value)}
+                      placeholder="Frontend разработчик"
+                      required
+                    />
+                  </div>
+
+                  <Input
+                    label="Отдел"
+                    value={form.department}
+                    onChange={(e) => updateForm('department', e.target.value)}
+                    placeholder="Разработка"
+                    required
+                  />
+
+                  <Select
+                    label="Уровень"
+                    value={form.level}
+                    onChange={(e) => updateForm('level', e.target.value)}
+                    options={[
+                      { value: 'junior', label: 'Junior' },
+                      { value: 'middle', label: 'Middle' },
+                      { value: 'senior', label: 'Senior' },
+                      { value: 'lead', label: 'Lead' },
+                    ]}
+                    required
+                  />
+
+                  <Input
+                    label="Опыт работы (лет)"
+                    type="number"
+                    value={form.experience_years}
+                    onChange={(e) => updateForm('experience_years', e.target.value)}
+                    min="0"
+                    required
+                  />
+
+                  <Input
+                    label="Зарплата от (₽)"
+                    type="number"
+                    value={form.salary_min}
+                    onChange={(e) => updateForm('salary_min', e.target.value)}
+                    placeholder="100000"
+                  />
+
+                  <Input
+                    label="Зарплата до (₽)"
+                    type="number"
+                    value={form.salary_max}
+                    onChange={(e) => updateForm('salary_max', e.target.value)}
+                    placeholder="200000"
+                  />
+
+                  <Select
+                    label="Формат работы"
+                    value={form.work_format}
+                    onChange={(e) => updateForm('work_format', e.target.value)}
+                    options={[
+                      { value: 'remote', label: 'Удаленно' },
+                      { value: 'hybrid', label: 'Гибрид' },
+                      { value: 'office', label: 'Офис' },
+                    ]}
+                    required
+                  />
+
+                  <Select
+                    label="График работы"
+                    value={form.work_schedule}
+                    onChange={(e) => updateForm('work_schedule', e.target.value)}
+                    options={[
+                      { value: 'full', label: 'Полный день' },
+                      { value: 'part', label: 'Частичная занятость' },
+                    ]}
+                    required
+                  />
+
+                  <div className="md:col-span-2">
+                    <Textarea
+                      label="Требования"
+                      value={form.requirements}
+                      onChange={(e) => updateForm('requirements', e.target.value)}
+                      placeholder="Опыт работы с React, TypeScript..."
+                      rows={4}
+                      required
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Textarea
+                      label="Обязанности"
+                      value={form.responsibilities}
+                      onChange={(e) => updateForm('responsibilities', e.target.value)}
+                      placeholder="Разработка frontend приложений..."
+                      rows={4}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <Button type="submit" disabled={loading} className="flex-1 md:flex-none">
+                    {loading ? 'Сохранение...' : 'Подтвердить и продолжить'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={loading}
+                    onClick={() => setMode('upload')}
                   >
                     Назад
                   </Button>
