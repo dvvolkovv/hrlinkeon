@@ -111,7 +111,6 @@ export function EditVacancy() {
 
       const payload = {
         user_id: userId,
-        status: 'published',
         vacancy_data: {
           title: form.title,
           department: form.department,

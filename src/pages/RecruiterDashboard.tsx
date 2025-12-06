@@ -19,6 +19,7 @@ import {
   Coins,
   LogOut,
   Edit,
+  Send,
 } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
@@ -40,6 +41,7 @@ export function RecruiterDashboard() {
   const [loading, setLoading] = useState(true);
   const [copiedVacancyId, setCopiedVacancyId] = useState<string | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number>(0);
+  const [publishingVacancyId, setPublishingVacancyId] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -160,6 +162,33 @@ export function RecruiterDashboard() {
       }, 2000);
     } catch (error) {
       console.error('Failed to copy link:', error);
+    }
+  };
+
+  const handlePublishVacancy = async (vacancyId: string) => {
+    try {
+      setPublishingVacancyId(vacancyId);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-vacancy-publish/api/vacancies/${vacancyId}/publish`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to publish vacancy');
+      }
+
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Failed to publish vacancy:', error);
+      alert('Не удалось опубликовать вакансию');
+    } finally {
+      setPublishingVacancyId(null);
     }
   };
 
@@ -315,24 +344,40 @@ export function RecruiterDashboard() {
                         <span className="hidden sm:inline">Редактировать</span>
                       </Button>
                     </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => handleShareVacancy(vacancy)}
-                    >
-                      {copiedVacancyId === vacancy.id ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          <span className="hidden sm:inline">Скопировано</span>
-                        </>
-                      ) : (
-                        <>
-                          <Share2 className="w-4 h-4" />
-                          <span className="hidden sm:inline">Поделиться</span>
-                        </>
-                      )}
-                    </Button>
+                    {vacancy.status !== 'published' && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => handlePublishVacancy(vacancy.id)}
+                        disabled={publishingVacancyId === vacancy.id}
+                      >
+                        <Send className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                          {publishingVacancyId === vacancy.id ? 'Публикация...' : 'Опубликовать'}
+                        </span>
+                      </Button>
+                    )}
+                    {vacancy.status === 'published' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => handleShareVacancy(vacancy)}
+                      >
+                        {copiedVacancyId === vacancy.id ? (
+                          <>
+                            <Check className="w-4 h-4" />
+                            <span className="hidden sm:inline">Скопировано</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">Поделиться</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
                     <Link to={`/vacancy/${vacancy.id}/dashboard`}>
                       <Button variant="outline" size="sm" className="gap-2">
                         <Eye className="w-4 h-4" />
