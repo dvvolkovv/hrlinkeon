@@ -20,6 +20,19 @@ interface VacancyForm {
   responsibilities: string;
   benefits: string;
   experience: string;
+  pitch?: string;
+  values?: string;
+  company_name?: string;
+  company_mission?: string;
+  company_culture?: string;
+  company_values?: string;
+  hard_skills?: string;
+  soft_skills?: string;
+  anti_profile?: string;
+  role_goals?: string;
+  role_impact?: string;
+  hiring_stages?: string;
+  motivation_drivers?: string;
 }
 
 export function EditVacancy() {
@@ -38,6 +51,19 @@ export function EditVacancy() {
     responsibilities: '',
     benefits: '',
     experience: '',
+    pitch: '',
+    values: '',
+    company_name: '',
+    company_mission: '',
+    company_culture: '',
+    company_values: '',
+    hard_skills: '',
+    soft_skills: '',
+    anti_profile: '',
+    role_goals: '',
+    role_impact: '',
+    hiring_stages: '',
+    motivation_drivers: '',
   });
 
   const [loading, setLoading] = useState(true);
@@ -76,6 +102,8 @@ export function EditVacancy() {
         throw new Error('Vacancy not found');
       }
 
+      const extendedData = vacancy.extended_data?.vacancy || {};
+
       setForm({
         title: vacancy.title || '',
         department: vacancy.department || '',
@@ -89,6 +117,21 @@ export function EditVacancy() {
         responsibilities: vacancy.vacancy_data?.responsibilities || '',
         benefits: vacancy.vacancy_data?.benefits || '',
         experience: vacancy.vacancy_data?.experience || '',
+        pitch: extendedData.pitch || '',
+        values: Array.isArray(extendedData.values) ? extendedData.values.join('\n') : '',
+        company_name: extendedData.company?.name || '',
+        company_mission: extendedData.company?.mission || '',
+        company_culture: extendedData.company?.culture || '',
+        company_values: Array.isArray(extendedData.company?.values) ? extendedData.company.values.join('\n') : '',
+        hard_skills: Array.isArray(extendedData.hard_skills) ? extendedData.hard_skills.join('\n') : '',
+        soft_skills: Array.isArray(extendedData.soft_skills) ? extendedData.soft_skills.join('\n') : '',
+        anti_profile: extendedData.anti_profile?.not_suitable_if ? extendedData.anti_profile.not_suitable_if.join('\n') : '',
+        role_goals: extendedData.role_context?.goals || '',
+        role_impact: extendedData.role_context?.impact || '',
+        hiring_stages: Array.isArray(extendedData.hiring_process?.stages) ? extendedData.hiring_process.stages.join('\n') : '',
+        motivation_drivers: Array.isArray(extendedData.motivation_profile?.what_motivates || extendedData.motivation_profile?.drivers)
+          ? (extendedData.motivation_profile.what_motivates || extendedData.motivation_profile.drivers).join('\n')
+          : '',
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке вакансии');
@@ -109,6 +152,50 @@ export function EditVacancy() {
         return;
       }
 
+      const extendedData: any = {
+        type: 'vacancy_profile',
+        is_ready: true,
+        vacancy: {},
+      };
+
+      if (form.pitch) extendedData.vacancy.pitch = form.pitch;
+      if (form.values) extendedData.vacancy.values = form.values.split('\n').filter(v => v.trim());
+
+      if (form.company_name || form.company_mission || form.company_culture || form.company_values) {
+        extendedData.vacancy.company = {};
+        if (form.company_name) extendedData.vacancy.company.name = form.company_name;
+        if (form.company_mission) extendedData.vacancy.company.mission = form.company_mission;
+        if (form.company_culture) extendedData.vacancy.company.culture = form.company_culture;
+        if (form.company_values) extendedData.vacancy.company.values = form.company_values.split('\n').filter(v => v.trim());
+      }
+
+      if (form.hard_skills) extendedData.vacancy.hard_skills = form.hard_skills.split('\n').filter(v => v.trim());
+      if (form.soft_skills) extendedData.vacancy.soft_skills = form.soft_skills.split('\n').filter(v => v.trim());
+
+      if (form.anti_profile) {
+        extendedData.vacancy.anti_profile = {
+          not_suitable_if: form.anti_profile.split('\n').filter(v => v.trim()),
+        };
+      }
+
+      if (form.role_goals || form.role_impact) {
+        extendedData.vacancy.role_context = {};
+        if (form.role_goals) extendedData.vacancy.role_context.goals = form.role_goals;
+        if (form.role_impact) extendedData.vacancy.role_context.impact = form.role_impact;
+      }
+
+      if (form.hiring_stages) {
+        extendedData.vacancy.hiring_process = {
+          stages: form.hiring_stages.split('\n').filter(v => v.trim()),
+        };
+      }
+
+      if (form.motivation_drivers) {
+        extendedData.vacancy.motivation_profile = {
+          drivers: form.motivation_drivers.split('\n').filter(v => v.trim()),
+        };
+      }
+
       const payload = {
         user_id: userId,
         vacancy_data: {
@@ -125,10 +212,7 @@ export function EditVacancy() {
           benefits: form.benefits,
           experience: form.experience,
         },
-        extended_data: {
-          type: 'vacancy_profile',
-          is_ready: true,
-        },
+        extended_data: extendedData,
       };
 
       const response = await fetch(`https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`, {
@@ -323,7 +407,154 @@ export function EditVacancy() {
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Расширенная информация</h3>
+                <div className="space-y-6">
+                  <div>
+                    <Textarea
+                      label="Pitch вакансии"
+                      value={form.pitch || ''}
+                      onChange={(e) => updateForm('pitch', e.target.value)}
+                      placeholder="Краткое привлекательное описание вакансии..."
+                      rows={4}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Продающее описание вакансии для привлечения кандидатов</p>
+                  </div>
+
+                  <div>
+                    <Textarea
+                      label="Ценности вакансии"
+                      value={form.values || ''}
+                      onChange={(e) => updateForm('values', e.target.value)}
+                      placeholder="Каждая ценность с новой строки..."
+                      rows={4}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Список ценностей, каждая с новой строки</p>
+                  </div>
+
+                  <div>
+                    <Textarea
+                      label="Hard Skills"
+                      value={form.hard_skills || ''}
+                      onChange={(e) => updateForm('hard_skills', e.target.value)}
+                      placeholder="Каждый навык с новой строки..."
+                      rows={5}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Технические навыки, каждый с новой строки</p>
+                  </div>
+
+                  <div>
+                    <Textarea
+                      label="Soft Skills"
+                      value={form.soft_skills || ''}
+                      onChange={(e) => updateForm('soft_skills', e.target.value)}
+                      placeholder="Каждый навык с новой строки..."
+                      rows={4}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Личностные качества, каждое с новой строки</p>
+                  </div>
+
+                  <div>
+                    <Textarea
+                      label="Антипрофиль (кому не подойдет)"
+                      value={form.anti_profile || ''}
+                      onChange={(e) => updateForm('anti_profile', e.target.value)}
+                      placeholder="Каждый пункт с новой строки..."
+                      rows={4}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Описание кандидатов, которым не подойдет вакансия</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">О компании</h3>
+                <div className="space-y-6">
+                  <Input
+                    label="Название компании"
+                    value={form.company_name || ''}
+                    onChange={(e) => updateForm('company_name', e.target.value)}
+                    placeholder="Название компании"
+                  />
+
+                  <Textarea
+                    label="Миссия компании"
+                    value={form.company_mission || ''}
+                    onChange={(e) => updateForm('company_mission', e.target.value)}
+                    placeholder="Миссия и цели компании..."
+                    rows={3}
+                  />
+
+                  <Textarea
+                    label="Культура компании"
+                    value={form.company_culture || ''}
+                    onChange={(e) => updateForm('company_culture', e.target.value)}
+                    placeholder="Описание корпоративной культуры..."
+                    rows={3}
+                  />
+
+                  <div>
+                    <Textarea
+                      label="Ценности компании"
+                      value={form.company_values || ''}
+                      onChange={(e) => updateForm('company_values', e.target.value)}
+                      placeholder="Каждая ценность с новой строки..."
+                      rows={4}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Корпоративные ценности, каждая с новой строки</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Роль и контекст</h3>
+                <div className="space-y-6">
+                  <Textarea
+                    label="Цели роли"
+                    value={form.role_goals || ''}
+                    onChange={(e) => updateForm('role_goals', e.target.value)}
+                    placeholder="Основные цели и задачи позиции..."
+                    rows={3}
+                  />
+
+                  <Textarea
+                    label="Влияние роли"
+                    value={form.role_impact || ''}
+                    onChange={(e) => updateForm('role_impact', e.target.value)}
+                    placeholder="Какое влияние будет иметь кандидат на продукт и компанию..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Процесс найма и мотивация</h3>
+                <div className="space-y-6">
+                  <div>
+                    <Textarea
+                      label="Этапы найма"
+                      value={form.hiring_stages || ''}
+                      onChange={(e) => updateForm('hiring_stages', e.target.value)}
+                      placeholder="Каждый этап с новой строки..."
+                      rows={3}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Этапы процесса найма, каждый с новой строки</p>
+                  </div>
+
+                  <div>
+                    <Textarea
+                      label="Мотиваторы"
+                      value={form.motivation_drivers || ''}
+                      onChange={(e) => updateForm('motivation_drivers', e.target.value)}
+                      placeholder="Каждый мотиватор с новой строки..."
+                      rows={4}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Что может мотивировать кандидата, каждый пункт с новой строки</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-6 mt-6 border-t">
                 <Button type="submit" disabled={saving} className="flex-1 md:flex-none">
                   {saving ? 'Сохранение...' : 'Сохранить изменения'}
                 </Button>
