@@ -254,24 +254,49 @@ export function PublicVacancy() {
               </div>
             )}
 
-            <div className="pt-4 border-t border-gray-200">
-              <Button
-                size="lg"
-                className="w-full md:w-auto gap-2"
-                onClick={() => setShowApplicationForm(true)}
-              >
-                <Send className="w-5 h-5" />
-                Откликнуться на вакансию
-              </Button>
-            </div>
+            {!rejectionMessage && (
+              <div className="pt-4 border-t border-gray-200">
+                <Button
+                  size="lg"
+                  className="w-full md:w-auto gap-2"
+                  onClick={() => setShowApplicationForm(true)}
+                >
+                  <Send className="w-5 h-5" />
+                  Откликнуться на вакансию
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {showApplicationForm && vacancy && (
+        {rejectionMessage && (
+          <Card className="mb-6">
+            <CardContent className="py-8">
+              <div className="text-center max-w-2xl mx-auto">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Отклик не принят</h3>
+                <p className="text-gray-700 mb-6">{rejectionMessage}</p>
+                {rejectionDetails && rejectionDetails.explanation && (
+                  <div className="bg-gray-50 rounded-lg p-4 text-left">
+                    <p className="text-sm text-gray-700">{rejectionDetails.explanation}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {showApplicationForm && vacancy && vacancy.slug && (
           <CandidateApplicationForm
             vacancyId={vacancy.id}
+            publicLink={vacancy.slug}
             onSuccess={handleApplicationSuccess}
             onCancel={() => setShowApplicationForm(false)}
+            onRejected={handleApplicationRejected}
           />
         )}
       </div>
