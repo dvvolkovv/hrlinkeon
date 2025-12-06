@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface Message {
@@ -335,6 +335,15 @@ export function VacancyProfiling() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
+        <Button
+          variant="outline"
+          onClick={() => navigate('/recruiter')}
+          className="gap-2 mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Назад к вакансиям
+        </Button>
+
         {!profileReady && (
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">
