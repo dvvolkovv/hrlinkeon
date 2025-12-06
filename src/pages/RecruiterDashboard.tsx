@@ -18,6 +18,7 @@ import {
   Check,
   Coins,
   LogOut,
+  Edit,
 } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
@@ -308,6 +309,12 @@ export function RecruiterDashboard() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Link to={`/vacancy/${vacancy.id}/edit`}>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Edit className="w-4 h-4" />
+                        <span className="hidden sm:inline">Редактировать</span>
+                      </Button>
+                    </Link>
                     <Button
                       variant="outline"
                       size="sm"
