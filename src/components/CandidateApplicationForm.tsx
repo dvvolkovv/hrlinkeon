@@ -6,14 +6,18 @@ import { Upload, FileText, CheckCircle } from 'lucide-react';
 
 interface CandidateApplicationFormProps {
   vacancyId: string;
+  publicLink: string;
   onSuccess: (candidateId: string) => void;
   onCancel: () => void;
+  onRejected?: (message: string, details?: { explanation?: string }) => void;
 }
 
 export function CandidateApplicationForm({
   vacancyId,
+  publicLink,
   onSuccess,
   onCancel,
+  onRejected,
 }: CandidateApplicationFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -65,7 +69,7 @@ export function CandidateApplicationForm({
       setUploadProgress(30);
 
       const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-candidate-apply/public/vacancies/${vacancyId}/apply`,
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-candidate-apply/public/vacancies/${publicLink}/apply`,
         {
           method: 'POST',
           body: formData,
@@ -84,6 +88,13 @@ export function CandidateApplicationForm({
 
       if (data.success && data.candidate_id) {
         onSuccess(data.candidate_id);
+      } else if (data.rejected) {
+        if (onRejected) {
+          onRejected(
+            data.message || 'К сожалению, ваша заявка не соответствует требованиям вакансии',
+            data.details
+          );
+        }
       } else {
         throw new Error('Не удалось получить ID кандидата');
       }
