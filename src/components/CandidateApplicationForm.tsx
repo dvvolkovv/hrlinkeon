@@ -3,7 +3,6 @@ import { Card, CardHeader, CardContent } from './ui/Card';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { Upload, FileText, CheckCircle } from 'lucide-react';
-import { mockStorage } from '../lib/mockData';
 
 interface CandidateApplicationFormProps {
   vacancyId: string;
@@ -16,9 +15,11 @@ export function CandidateApplicationForm({
   onSuccess,
   onCancel,
 }: CandidateApplicationFormProps) {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [githubLink, setGithubLink] = useState('');
+  const [portfolioLink, setPortfolioLink] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,47 +41,52 @@ export function CandidateApplicationForm({
     }
   };
 
-  const uploadResume = async (file: File): Promise<string> => {
-    setUploadProgress(30);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    setUploadProgress(70);
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    setUploadProgress(100);
-
-    return `mock-resume-url-${Date.now()}-${file.name}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setUploadProgress(0);
 
-    try {
-      let resumeUrl = null;
+    if (!resumeFile) {
+      setError('Пожалуйста, загрузите резюме');
+      setLoading(false);
+      return;
+    }
 
-      if (resumeFile) {
-        try {
-          resumeUrl = await uploadResume(resumeFile);
-        } catch (err) {
-          console.error('Resume upload error:', err);
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      if (phone) formData.append('phone', phone);
+      if (githubLink) formData.append('github_link', githubLink);
+      if (portfolioLink) formData.append('portfolio_link', portfolioLink);
+      formData.append('resume', resumeFile);
+
+      setUploadProgress(30);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-candidate-apply/public/vacancies/${vacancyId}/apply`,
+        {
+          method: 'POST',
+          body: formData,
         }
+      );
+
+      setUploadProgress(70);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Ошибка при отправке отклика');
       }
 
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const data = await response.json();
+      setUploadProgress(100);
 
-      const candidate = mockStorage.createCandidate({
-        vacancy_id: vacancyId,
-        email,
-        phone: phone || null,
-        portfolio_url: portfolioUrl || null,
-        resume_url: resumeUrl,
-        status: 'new',
-      });
-
-      onSuccess(candidate.id);
+      if (data.success && data.candidate_id) {
+        onSuccess(data.candidate_id);
+      } else {
+        throw new Error('Не удалось получить ID кандидата');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при отправке отклика');
     } finally {
@@ -107,11 +113,20 @@ export function CandidateApplicationForm({
           )}
 
           <Input
+            label="Имя"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Иван Иванов"
+            required
+          />
+
+          <Input
             label="Email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
+            placeholder="candidate@example.com"
             required
           />
 
@@ -120,20 +135,28 @@ export function CandidateApplicationForm({
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="+7 (999) 123-45-67"
+            placeholder="+79991234567"
           />
 
           <Input
-            label="Ссылка на портфолио / GitHub (необязательно)"
+            label="GitHub"
             type="url"
-            value={portfolioUrl}
-            onChange={(e) => setPortfolioUrl(e.target.value)}
+            value={githubLink}
+            onChange={(e) => setGithubLink(e.target.value)}
             placeholder="https://github.com/username"
+          />
+
+          <Input
+            label="Портфолио"
+            type="url"
+            value={portfolioLink}
+            onChange={(e) => setPortfolioLink(e.target.value)}
+            placeholder="https://portfolio.example.com"
           />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Резюме (необязательно)
+              Резюме <span className="text-red-500">*</span>
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-forest-500 transition-colors duration-200">
               <input
