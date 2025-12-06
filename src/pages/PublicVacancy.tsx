@@ -4,14 +4,35 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { CandidateApplicationForm } from '../components/CandidateApplicationForm';
-import { Briefcase, MapPin, Clock, DollarSign, Calendar, Send } from 'lucide-react';
+import { Briefcase, MapPin, Clock, DollarSign, Calendar, Send, Award } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
+
+interface PublicVacancyResponse {
+  success: boolean;
+  id: string;
+  public_link: string;
+  title: string;
+  department: string;
+  level: 'junior' | 'middle' | 'senior' | 'lead';
+  experience?: string;
+  salary_from?: number | null;
+  salary_to?: number | null;
+  format: 'remote' | 'hybrid' | 'office';
+  workload: 'full' | 'part';
+  description?: string;
+  requirements: string;
+  responsibilities: string;
+  benefits?: string;
+  pitch?: string;
+  created_at: string;
+}
 
 export function PublicVacancy() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [vacancy, setVacancy] = useState<Vacancy | null>(null);
+  const [additionalInfo, setAdditionalInfo] = useState<{ description?: string; benefits?: string; pitch?: string }>({});
   const [loading, setLoading] = useState(true);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
 
@@ -23,14 +44,73 @@ export function PublicVacancy() {
     loadVacancy();
   }, [slug]);
 
+  const extractYearsFromExperience = (experience?: string): number => {
+    if (!experience) return 0;
+    const match = experience.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  };
+
   const loadVacancy = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const publicLink = slug || '';
 
-      const vacancy = mockStorage.getVacancyBySlug(slug || '');
-      setVacancy(vacancy);
+      if (publicLink.startsWith('demo-')) {
+        const demoVacancy = mockStorage.getVacancyBySlug(publicLink);
+        setVacancy(demoVacancy);
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-public-vacancy/public/vacancies/${publicLink}`
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setVacancy(null);
+        } else {
+          throw new Error('Failed to load vacancy');
+        }
+        setLoading(false);
+        return;
+      }
+
+      const data: PublicVacancyResponse = await response.json();
+
+      if (!data.success) {
+        setVacancy(null);
+        setLoading(false);
+        return;
+      }
+
+      const transformedVacancy: Vacancy = {
+        id: data.id,
+        hr_user_id: '',
+        title: data.title,
+        department: data.department,
+        level: data.level,
+        experience_years: extractYearsFromExperience(data.experience),
+        salary_min: data.salary_from || null,
+        salary_max: data.salary_to || null,
+        work_format: data.format,
+        work_schedule: data.workload,
+        requirements: data.requirements,
+        responsibilities: data.responsibilities,
+        status: 'published',
+        slug: data.public_link,
+        created_at: data.created_at,
+        updated_at: data.created_at,
+      };
+
+      setVacancy(transformedVacancy);
+      setAdditionalInfo({
+        description: data.description,
+        benefits: data.benefits,
+        pitch: data.pitch,
+      });
     } catch (error) {
       console.error('Error loading vacancy:', error);
+      setVacancy(null);
     } finally {
       setLoading(false);
     }
@@ -109,6 +189,12 @@ export function PublicVacancy() {
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {additionalInfo.pitch && (
+              <div className="bg-forest-50 border border-forest-200 rounded-lg p-4">
+                <p className="text-gray-800 leading-relaxed">{additionalInfo.pitch}</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center gap-3 text-gray-700">
                 <DollarSign className="w-5 h-5 text-forest-600" />
@@ -125,11 +211,22 @@ export function PublicVacancy() {
                 <span>{workScheduleLabels[vacancy.work_schedule]}</span>
               </div>
 
-              <div className="flex items-center gap-3 text-gray-700">
-                <Calendar className="w-5 h-5 text-forest-600" />
-                <span>Опыт: {vacancy.experience_years} {vacancy.experience_years === 1 ? 'год' : 'лет'}</span>
-              </div>
+              {vacancy.experience_years > 0 && (
+                <div className="flex items-center gap-3 text-gray-700">
+                  <Calendar className="w-5 h-5 text-forest-600" />
+                  <span>Опыт: {vacancy.experience_years} {vacancy.experience_years === 1 ? 'год' : 'лет'}</span>
+                </div>
+              )}
             </div>
+
+            {additionalInfo.description && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">О вакансии</h3>
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {additionalInfo.description}
+                </p>
+              </div>
+            )}
 
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Обязанности</h3>
@@ -144,6 +241,18 @@ export function PublicVacancy() {
                 {vacancy.requirements}
               </p>
             </div>
+
+            {additionalInfo.benefits && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-forest-600" />
+                  Условия и бонусы
+                </h3>
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {additionalInfo.benefits}
+                </p>
+              </div>
+            )}
 
             <div className="pt-4 border-t border-gray-200">
               <Button
