@@ -35,9 +35,17 @@ export function PublicVacancy() {
   const [additionalInfo, setAdditionalInfo] = useState<{ description?: string; benefits?: string; pitch?: string }>({});
   const [loading, setLoading] = useState(true);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
+  const [rejectionDetails, setRejectionDetails] = useState<{ explanation?: string } | null>(null);
 
   const handleApplicationSuccess = (candidateId: string) => {
     navigate(`/candidate/${candidateId}/screening`);
+  };
+
+  const handleApplicationRejected = (message: string, details?: { explanation?: string }) => {
+    setRejectionMessage(message);
+    setRejectionDetails(details || null);
+    setShowApplicationForm(false);
   };
 
   useEffect(() => {
