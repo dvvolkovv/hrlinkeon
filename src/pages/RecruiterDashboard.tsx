@@ -21,6 +21,8 @@ import {
   Edit,
   Send,
   MessageSquare,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
@@ -44,6 +46,9 @@ export function RecruiterDashboard() {
   const [copiedVacancyId, setCopiedVacancyId] = useState<string | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number>(0);
   const [publishingVacancyId, setPublishingVacancyId] = useState<string | null>(null);
+  const [deletingVacancyId, setDeletingVacancyId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [vacancyToDelete, setVacancyToDelete] = useState<Vacancy | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -202,6 +207,57 @@ export function RecruiterDashboard() {
     }
 
     navigate(`/vacancy/${vacancyId}/chat`);
+  };
+
+  const openDeleteModal = (vacancy: Vacancy) => {
+    setVacancyToDelete(vacancy);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setVacancyToDelete(null);
+  };
+
+  const handleDeleteVacancy = async () => {
+    if (!vacancyToDelete) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setDeletingVacancyId(vacancyToDelete.id);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-delete-vacancy/api/vacancies/${vacancyToDelete.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete vacancy');
+      }
+
+      closeDeleteModal();
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Failed to delete vacancy:', error);
+      alert('Не удалось удалить вакансию. Попробуйте еще раз.');
+    } finally {
+      setDeletingVacancyId(null);
+    }
   };
 
   if (loading) {
@@ -405,6 +461,15 @@ export function RecruiterDashboard() {
                         <span className="hidden sm:inline">Просмотр</span>
                       </Button>
                     </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-red-600 hover:bg-red-50 hover:border-red-300"
+                      onClick={() => openDeleteModal(vacancy)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Удалить</span>
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -487,6 +552,48 @@ export function RecruiterDashboard() {
           </Card>
         )}
       </div>
+
+      {showDeleteModal && vacancyToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Удалить вакансию?</h3>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Вы уверены, что хотите удалить вакансию <span className="font-semibold">{vacancyToDelete.title}</span>?
+              </p>
+              <p className="text-sm text-gray-500">
+                Это действие нельзя отменить. Все данные, связанные с этой вакансией, будут удалены.
+              </p>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={closeDeleteModal}
+                  disabled={deletingVacancyId !== null}
+                  className="flex-1"
+                >
+                  Отмена
+                </Button>
+                <Button
+                  onClick={handleDeleteVacancy}
+                  disabled={deletingVacancyId !== null}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  {deletingVacancyId === vacancyToDelete.id ? 'Удаление...' : 'Удалить'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
