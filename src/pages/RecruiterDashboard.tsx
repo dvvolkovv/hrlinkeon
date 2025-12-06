@@ -50,9 +50,47 @@ export function RecruiterDashboard() {
       const currentBalance = storedBalance ? parseInt(storedBalance) : 0;
       setTokenBalance(currentBalance);
 
-      await new Promise(resolve => setTimeout(resolve, 600));
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        console.error('No user_id found in localStorage');
+        setLoading(false);
+        return;
+      }
 
-      const vacancies = mockStorage.getAllVacancies();
+      const response = await fetch('https://nomira-ai-test.up.railway.app/webhook-test/api/vacancies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch vacancies');
+      }
+
+      const result = await response.json();
+      const apiVacancies = result[0]?.data || [];
+
+      const vacancies: Vacancy[] = apiVacancies.map((apiVacancy: any) => ({
+        id: apiVacancy.id,
+        hr_user_id: apiVacancy.user_id,
+        title: apiVacancy.title,
+        department: apiVacancy.department,
+        level: apiVacancy.level,
+        experience_years: 0,
+        salary_min: apiVacancy.salary_from || null,
+        salary_max: apiVacancy.salary_to || null,
+        work_format: apiVacancy.format,
+        work_schedule: apiVacancy.vacancy_data?.workload || 'full',
+        requirements: apiVacancy.vacancy_data?.requirements || '',
+        responsibilities: apiVacancy.vacancy_data?.responsibilities || '',
+        status: apiVacancy.status,
+        slug: apiVacancy.public_link || apiVacancy.id,
+        created_at: apiVacancy.created_at,
+        updated_at: apiVacancy.updated_at,
+      }));
+
       const stats: VacancyStats[] = vacancies.map(vacancy => {
         const candidates = mockStorage.getCandidatesByVacancyId(vacancy.id);
 
