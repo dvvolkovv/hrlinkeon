@@ -6,13 +6,19 @@ import { CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
 
 interface CandidateStatusResponse {
   success: boolean;
-  status: 'pending' | 'screening' | 'approved' | 'rejected' | 'completed';
-  message?: string;
-  details?: {
-    screening_url?: string;
-    interview_completed?: boolean;
-    rejection_reason?: string;
-  };
+  candidate_id: string;
+  vacancy_id: string;
+  email: string;
+  name: string;
+  status: string;
+  analysis_status: string;
+  analysis_complete: boolean;
+  resume_file_path: string;
+  hard_skills_match: number | null;
+  next_step: string | null;
+  message: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export function CandidateStatus() {
@@ -49,8 +55,8 @@ export function CandidateStatus() {
   };
 
   const handleStartInterview = () => {
-    if (status?.details?.screening_url) {
-      window.location.href = status.details.screening_url;
+    if (status?.next_step) {
+      window.location.href = status.next_step;
     }
   };
 
@@ -83,126 +89,127 @@ export function CandidateStatus() {
   const renderStatusContent = () => {
     if (!status) return null;
 
-    switch (status.status) {
-      case 'pending':
-        return (
-          <div className="text-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Clock className="w-10 h-10 text-blue-600" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Ваша заявка обрабатывается
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-              {status.message || 'Пожалуйста, подождите. Мы анализируем ваше резюме и скоро предоставим дальнейшие инструкции.'}
-            </p>
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 rounded-lg">
-              <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-              <span className="text-sm font-medium text-blue-700">
-                Обновление каждые 5 секунд...
-              </span>
-            </div>
+    if (status.status === 'new' && !status.analysis_complete) {
+      return (
+        <div className="text-center">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
           </div>
-        );
-
-      case 'screening':
-        return (
-          <div className="text-center">
-            <div className="w-20 h-20 bg-forest-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-forest-600" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Готово к интервью!
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-              {status.message || 'Ваше резюме прошло первичную проверку. Нажмите кнопку ниже, чтобы начать AI-интервью.'}
-            </p>
-            {status.details?.screening_url && (
-              <Button size="lg" onClick={handleStartInterview}>
-                Начать интервью
-              </Button>
-            )}
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Идет проверка резюме
+          </h2>
+          <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+            {status.message}
+          </p>
+          <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 rounded-lg mb-6">
+            <Clock className="w-5 h-5 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">
+              Обычно занимает не более 5 минут
+            </span>
           </div>
-        );
-
-      case 'completed':
-        return (
-          <div className="text-center">
-            <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-primary-600" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Интервью завершено!
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-              {status.message || 'Спасибо за прохождение интервью. HR-специалист рассмотрит ваши ответы и свяжется с вами в ближайшее время.'}
-            </p>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate('/')}
-            >
-              Вернуться на главную
-            </Button>
-          </div>
-        );
-
-      case 'approved':
-        return (
-          <div className="text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-green-600" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Поздравляем!
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-              {status.message || 'Ваша кандидатура одобрена. HR-специалист свяжется с вами для обсуждения следующих шагов.'}
-            </p>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate('/')}
-            >
-              Вернуться на главную
-            </Button>
-          </div>
-        );
-
-      case 'rejected':
-        return (
-          <div className="text-center">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle className="w-10 h-10 text-red-600" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              К сожалению...
-            </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-              {status.message || 'К сожалению, ваша кандидатура не соответствует требованиям данной вакансии.'}
-            </p>
-            {status.details?.rejection_reason && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-8 text-left max-w-md mx-auto">
-                <p className="text-sm text-gray-700">{status.details.rejection_reason}</p>
-              </div>
-            )}
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate('/')}
-            >
-              Посмотреть другие вакансии
-            </Button>
-          </div>
-        );
-
-      default:
-        return (
-          <div className="text-center">
-            <p className="text-gray-600">Неизвестный статус</p>
-          </div>
-        );
+          <p className="text-sm text-gray-500">
+            После проверки вы будете направлены на интервью с AI-ассистентом или получите уведомление
+          </p>
+        </div>
+      );
     }
+
+    if (status.analysis_complete && status.next_step) {
+      return (
+        <div className="text-center">
+          <div className="w-20 h-20 bg-forest-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-forest-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Резюме проверено!
+          </h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+            {status.message}
+          </p>
+          {status.hard_skills_match !== null && (
+            <div className="bg-forest-50 rounded-lg p-4 mb-8 max-w-md mx-auto">
+              <div className="text-sm text-gray-600 mb-1">Соответствие требованиям</div>
+              <div className="text-2xl font-bold text-forest-700">{status.hard_skills_match}%</div>
+            </div>
+          )}
+          <Button size="lg" onClick={handleStartInterview}>
+            Перейти к интервью с AI-ассистентом
+          </Button>
+        </div>
+      );
+    }
+
+    if (status.analysis_complete && !status.next_step) {
+      return (
+        <div className="text-center">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-red-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            К сожалению...
+          </h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+            {status.message || 'К сожалению, ваша кандидатура не соответствует требованиям данной вакансии.'}
+          </p>
+          {status.hard_skills_match !== null && (
+            <div className="bg-gray-50 rounded-lg p-4 mb-8 text-left max-w-md mx-auto">
+              <p className="text-sm text-gray-600 mb-1">Соответствие требованиям</p>
+              <p className="text-lg font-semibold text-gray-900">{status.hard_skills_match}%</p>
+            </div>
+          )}
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate('/')}
+          >
+            Посмотреть другие вакансии
+          </Button>
+        </div>
+      );
+    }
+
+    if (status.status === 'completed' || status.status === 'interview_completed') {
+      return (
+        <div className="text-center">
+          <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-primary-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Интервью завершено!
+          </h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+            {status.message || 'Спасибо за прохождение интервью. HR-специалист рассмотрит ваши ответы и свяжется с вами в ближайшее время.'}
+          </p>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate('/')}
+          >
+            Вернуться на главную
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-center">
+        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Clock className="w-10 h-10 text-gray-600" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          Обработка заявки
+        </h2>
+        <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+          {status.message}
+        </p>
+        <div className="inline-flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-lg">
+          <Loader2 className="w-5 h-5 text-gray-600 animate-spin" />
+          <span className="text-sm font-medium text-gray-700">
+            Проверка статуса...
+          </span>
+        </div>
+      </div>
+    );
   };
 
   return (
