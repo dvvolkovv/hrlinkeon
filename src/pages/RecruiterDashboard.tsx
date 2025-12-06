@@ -57,7 +57,7 @@ export function RecruiterDashboard() {
         return;
       }
 
-      const response = await fetch('https://nomira-ai-test.up.railway.app/webhook-test/api/vacancies', {
+      const response = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
