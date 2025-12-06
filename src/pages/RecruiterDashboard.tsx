@@ -70,7 +70,7 @@ export function RecruiterDashboard() {
       }
 
       const result = await response.json();
-      const apiVacancies = result[0]?.data || [];
+      const apiVacancies = result.data || [];
 
       const vacancies: Vacancy[] = apiVacancies.map((apiVacancy: any) => ({
         id: apiVacancy.id,
