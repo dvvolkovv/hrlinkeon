@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -38,6 +38,7 @@ interface VacancyStats {
 }
 
 export function RecruiterDashboard() {
+  const navigate = useNavigate();
   const [vacanciesStats, setVacanciesStats] = useState<VacancyStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedVacancyId, setCopiedVacancyId] = useState<string | null>(null);
@@ -200,8 +201,7 @@ export function RecruiterDashboard() {
       return;
     }
 
-    const chatUrl = `https://nomira-ai-test.up.railway.app/webhook/rec/chat?user_id=${userId}&vacancy_id=${vacancyId}`;
-    window.open(chatUrl, '_blank');
+    navigate(`/vacancy/${vacancyId}/chat`);
   };
 
   if (loading) {
