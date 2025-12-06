@@ -158,7 +158,7 @@ export function RecruiterDashboard() {
   };
 
   const handleShareVacancy = async (vacancy: Vacancy) => {
-    const url = `${window.location.origin}/vacancy/${vacancy.slug}`;
+    const url = `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-public-vacancy/public/vacancies/${vacancy.slug}`;
 
     try {
       await navigator.clipboard.writeText(url);
