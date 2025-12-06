@@ -4,6 +4,12 @@ import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
 
+interface HardSkillsMatch {
+  match_score: number;
+  strengths: string[];
+  missing_skills: string[];
+}
+
 interface CandidateStatusResponse {
   success: boolean;
   candidate_id: string;
@@ -14,7 +20,7 @@ interface CandidateStatusResponse {
   analysis_status: string;
   analysis_complete: boolean;
   resume_file_path: string;
-  hard_skills_match: number | null;
+  hard_skills_match: number | HardSkillsMatch | null;
   next_step: string | null;
   message: string;
   created_at: string;
@@ -55,9 +61,23 @@ export function CandidateStatus() {
   };
 
   const handleStartInterview = () => {
-    if (status?.next_step) {
+    if (status?.next_step && status.next_step !== 'finish') {
       window.location.href = status.next_step;
     }
+  };
+
+  const getMatchScore = (): number | null => {
+    if (!status?.hard_skills_match) return null;
+    if (typeof status.hard_skills_match === 'number') return status.hard_skills_match;
+    return status.hard_skills_match.match_score;
+  };
+
+  const getSkillsDetails = (): HardSkillsMatch | null => {
+    if (!status?.hard_skills_match) return null;
+    if (typeof status.hard_skills_match === 'object' && 'match_score' in status.hard_skills_match) {
+      return status.hard_skills_match;
+    }
+    return null;
   };
 
   if (loading && !status) {
@@ -114,7 +134,77 @@ export function CandidateStatus() {
       );
     }
 
-    if (status.analysis_complete && status.next_step) {
+    if (status.status === 'rejected' || (status.analysis_complete && status.next_step === 'finish')) {
+      const matchScore = getMatchScore();
+      const skillsDetails = getSkillsDetails();
+
+      return (
+        <div className="text-center">
+          <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-amber-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Спасибо за ваш интерес!
+          </h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+            {status.message}
+          </p>
+
+          {matchScore !== null && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
+              <div className="text-center mb-6">
+                <div className="text-sm text-gray-600 mb-2">Соответствие требованиям вакансии</div>
+                <div className="text-4xl font-bold text-gray-900">{matchScore}%</div>
+              </div>
+
+              {skillsDetails && (
+                <div className="grid md:grid-cols-2 gap-6 text-left">
+                  {skillsDetails.strengths.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Ваши сильные стороны:</h3>
+                      <ul className="space-y-2">
+                        {skillsDetails.strengths.map((strength, index) => (
+                          <li key={index} className="text-sm text-gray-700 flex items-start">
+                            <CheckCircle className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                            <span>{strength}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {skillsDetails.missing_skills.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Области для развития:</h3>
+                      <ul className="space-y-2">
+                        {skillsDetails.missing_skills.map((skill, index) => (
+                          <li key={index} className="text-sm text-gray-700 flex items-start">
+                            <AlertCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
+                            <span>{skill}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate('/')}
+          >
+            Посмотреть другие вакансии
+          </Button>
+        </div>
+      );
+    }
+
+    if (status.analysis_complete && status.next_step && status.next_step !== 'finish') {
+      const matchScore = getMatchScore();
+
       return (
         <div className="text-center">
           <div className="w-20 h-20 bg-forest-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -126,10 +216,10 @@ export function CandidateStatus() {
           <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
             {status.message}
           </p>
-          {status.hard_skills_match !== null && (
+          {matchScore !== null && (
             <div className="bg-forest-50 rounded-lg p-4 mb-8 max-w-md mx-auto">
               <div className="text-sm text-gray-600 mb-1">Соответствие требованиям</div>
-              <div className="text-2xl font-bold text-forest-700">{status.hard_skills_match}%</div>
+              <div className="text-2xl font-bold text-forest-700">{matchScore}%</div>
             </div>
           )}
           <Button size="lg" onClick={handleStartInterview}>
@@ -140,6 +230,8 @@ export function CandidateStatus() {
     }
 
     if (status.analysis_complete && !status.next_step) {
+      const matchScore = getMatchScore();
+
       return (
         <div className="text-center">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -151,10 +243,10 @@ export function CandidateStatus() {
           <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
             {status.message || 'К сожалению, ваша кандидатура не соответствует требованиям данной вакансии.'}
           </p>
-          {status.hard_skills_match !== null && (
+          {matchScore !== null && (
             <div className="bg-gray-50 rounded-lg p-4 mb-8 text-left max-w-md mx-auto">
               <p className="text-sm text-gray-600 mb-1">Соответствие требованиям</p>
-              <p className="text-lg font-semibold text-gray-900">{status.hard_skills_match}%</p>
+              <p className="text-lg font-semibold text-gray-900">{matchScore}%</p>
             </div>
           )}
           <Button
@@ -212,9 +304,12 @@ export function CandidateStatus() {
     );
   };
 
+  const isRejected = status?.status === 'rejected' || (status?.analysis_complete && status?.next_step === 'finish');
+  const containerClass = isRejected ? "max-w-4xl mx-auto" : "max-w-2xl mx-auto";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className={containerClass}>
         <Card>
           <CardContent className="py-16">
             {renderStatusContent()}
