@@ -69,6 +69,7 @@ export function EditVacancy() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadVacancy();
@@ -144,6 +145,7 @@ export function EditVacancy() {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const userId = localStorage.getItem('user_id');
@@ -227,9 +229,11 @@ export function EditVacancy() {
         throw new Error('Failed to update vacancy');
       }
 
-      navigate('/recruiter');
+      setSuccess('Изменения успешно сохранены');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при сохранении');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSaving(false);
     }
@@ -281,6 +285,12 @@ export function EditVacancy() {
               {error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
                   {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+                  {success}
                 </div>
               )}
 
