@@ -111,31 +111,29 @@ export function EditVacancy() {
 
       const payload = {
         user_id: userId,
-        vacancy_id: vacancyId,
-        title: form.title,
-        department: form.department,
-        level: form.level,
-        salary_from: form.salary_from ? Number(form.salary_from) : 0,
-        salary_to: form.salary_to ? Number(form.salary_to) : 0,
-        format: form.format,
+        status: 'published',
         vacancy_data: {
+          title: form.title,
+          department: form.department,
+          level: form.level,
+          salary_from: form.salary_from ? Number(form.salary_from) : null,
+          salary_to: form.salary_to ? Number(form.salary_to) : null,
+          format: form.format,
           workload: form.workload,
           description: form.description,
           requirements: form.requirements,
           responsibilities: form.responsibilities,
           benefits: form.benefits,
           experience: form.experience,
-          title: form.title,
-          department: form.department,
-          level: form.level,
-          salary_from: form.salary_from ? Number(form.salary_from) : 0,
-          salary_to: form.salary_to ? Number(form.salary_to) : 0,
-          format: form.format,
+        },
+        extended_data: {
+          type: 'vacancy_profile',
+          is_ready: true,
         },
       };
 
-      const response = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies/update', {
-        method: 'PUT',
+      const response = await fetch(`https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
