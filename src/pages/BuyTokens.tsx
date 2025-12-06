@@ -4,7 +4,6 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { ArrowLeft, Coins, Check, Zap, TrendingUp, Award } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface Tariff {
   id: string;

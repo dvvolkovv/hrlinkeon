@@ -4,7 +4,6 @@ import { Card, CardContent } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface Message {
   role: 'assistant' | 'user';
@@ -17,12 +16,7 @@ export function VacancyChat() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [vacancyTitle, setVacancyTitle] = useState<string>('');
   const isInitialized = useRef(false);
-
-  useEffect(() => {
-    loadVacancyTitle();
-  }, [id]);
 
   useEffect(() => {
     if (isInitialized.current) return;
@@ -30,25 +24,6 @@ export function VacancyChat() {
 
     sendInitialMessage();
   }, []);
-
-  const loadVacancyTitle = async () => {
-    if (!id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('vacancies')
-        .select('title')
-        .eq('id', id)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (data) {
-        setVacancyTitle(data.title);
-      }
-    } catch (error) {
-      console.error('Error loading vacancy:', error);
-    }
-  };
 
   const sendInitialMessage = async () => {
     const userId = localStorage.getItem('user_id');
@@ -211,11 +186,6 @@ export function VacancyChat() {
           <h1 className="text-2xl font-bold text-gray-900">
             Чат с AI-ассистентом
           </h1>
-          {vacancyTitle && (
-            <p className="text-gray-600 mt-1">
-              Вакансия: {vacancyTitle}
-            </p>
-          )}
         </div>
 
         <Card className="h-[600px] flex flex-col">

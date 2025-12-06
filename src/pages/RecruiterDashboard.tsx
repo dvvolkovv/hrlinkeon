@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
-import { supabase } from '../lib/supabase';
 
 interface VacancyStats {
   vacancy: Vacancy;

@@ -4,7 +4,6 @@ import { Card, CardContent } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
 import { Check, Sparkles, ArrowLeft } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface Message {
   role: 'assistant' | 'user';
@@ -73,51 +72,6 @@ export function VacancyProfiling() {
     ]);
   };
 
-  const saveVacancyProfile = async (profileData: VacancyProfileData, vacancyId: string) => {
-    try {
-      const { data: existingProfile } = await supabase
-        .from('vacancy_profiles')
-        .select('id')
-        .eq('vacancy_id', vacancyId)
-        .maybeSingle();
-
-      const profilePayload = {
-        vacancy_id: vacancyId,
-        full_profile_data: profileData,
-        pitch: profileData.pitch || '',
-        hard_skills: profileData.hard_skills || [],
-        soft_skills: profileData.soft_skills || [],
-        values: profileData.values || [],
-        red_flags: profileData.anti_profile || {},
-        updated_at: new Date().toISOString(),
-      };
-
-      if (existingProfile) {
-        const { error } = await supabase
-          .from('vacancy_profiles')
-          .update(profilePayload)
-          .eq('vacancy_id', vacancyId);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('vacancy_profiles')
-          .insert(profilePayload);
-
-        if (error) throw error;
-      }
-
-      const { error: vacancyError } = await supabase
-        .from('vacancies')
-        .update({ status: 'published' })
-        .eq('id', vacancyId);
-
-      if (vacancyError) throw vacancyError;
-    } catch (error) {
-      console.error('Error saving vacancy profile:', error);
-      throw error;
-    }
-  };
 
   const sendMessageToAPI = async (message: string, userId: string, vacancyId: string) => {
     const apiUrl = 'https://nomira-ai-test.up.railway.app/webhook/rec/chat';
@@ -171,14 +125,9 @@ export function VacancyProfiling() {
             setVacancyProfile(jsonData.vacancy);
             setProfileReady(true);
 
-            try {
-              await saveVacancyProfile(jsonData.vacancy, vacancyId);
-              setTimeout(() => {
-                setIsCompleted(true);
-              }, 1000);
-            } catch (error) {
-              console.error('Error saving profile:', error);
-            }
+            setTimeout(() => {
+              setIsCompleted(true);
+            }, 1000);
             continue;
           }
 
@@ -229,14 +178,9 @@ export function VacancyProfiling() {
           setVacancyProfile(jsonData.vacancy);
           setProfileReady(true);
 
-          try {
-            await saveVacancyProfile(jsonData.vacancy, vacancyId);
-            setTimeout(() => {
-              setIsCompleted(true);
-            }, 1000);
-          } catch (error) {
-            console.error('Error saving profile:', error);
-          }
+          setTimeout(() => {
+            setIsCompleted(true);
+          }, 1000);
         }
       } catch (e) {
         console.warn('Failed to parse assistant message as JSON:', e);
