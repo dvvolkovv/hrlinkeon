@@ -279,15 +279,15 @@ export function VacancyDashboard() {
                         {candidate.profile_is_ready && (
                           <Badge variant="success">Профиль готов</Badge>
                         )}
-                        {candidate.resume_analysis?.relevance_to_vacancy?.match_score && (
+                        {candidate.scoring?.overall_score && (
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                              Совпадение: {candidate.resume_analysis.relevance_to_vacancy.match_score}%
+                              Совпадение: {Math.round(candidate.scoring.overall_score)}%
                             </div>
                             <div className="w-16 sm:w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full"
-                                style={{ width: `${candidate.resume_analysis.relevance_to_vacancy.match_score}%` }}
+                                style={{ width: `${candidate.scoring.overall_score}%` }}
                               />
                             </div>
                           </div>
