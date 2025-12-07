@@ -62,7 +62,9 @@ export function CandidateStatus() {
 
   const handleStartInterview = () => {
     if (status?.next_step && status.next_step !== 'finish') {
-      window.location.href = status.next_step;
+      if (publicLink && candidateId) {
+        navigate(`/public/vacancies/${publicLink}/candidates/${candidateId}/interview`);
+      }
     }
   };
 
