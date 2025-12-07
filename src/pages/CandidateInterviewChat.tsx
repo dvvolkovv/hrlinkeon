@@ -38,6 +38,7 @@ export function CandidateInterviewChat() {
     isInitialized.current = true;
 
     sendInitialMessage();
+    checkProfileStatus();
   }, []);
 
   const sendInitialMessage = async () => {
@@ -232,14 +233,19 @@ export function CandidateInterviewChat() {
         </div>
 
         {profileStatus?.profile?.is_ready && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-green-900 mb-1">
-                Собеседование завершено!
+          <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl shadow-lg flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-7 h-7 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-green-900 mb-2">
+                ✓ Профиль собран
               </h3>
-              <p className="text-green-800">
+              <p className="text-green-800 text-base leading-relaxed">
                 {profileStatus.message}
+              </p>
+              <p className="text-green-700 text-sm mt-3 font-medium">
+                Вы можете закрыть эту страницу или продолжить общение.
               </p>
             </div>
           </div>
