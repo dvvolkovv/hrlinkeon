@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 
 interface Message {
   role: 'assistant' | 'user';
@@ -11,11 +11,26 @@ interface Message {
   timestamp: string;
 }
 
+interface ProfileStatus {
+  success: boolean;
+  candidate_id: string;
+  vacancy_id: string;
+  email: string;
+  name: string;
+  status: string;
+  profile: {
+    type: string;
+    is_ready: boolean;
+  };
+  message: string;
+}
+
 export function CandidateInterviewChat() {
   const { publicLink, candidateId } = useParams<{ publicLink: string; candidateId: string }>();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [profileStatus, setProfileStatus] = useState<ProfileStatus | null>(null);
   const isInitialized = useRef(false);
 
   useEffect(() => {
@@ -50,6 +65,34 @@ export function CandidateInterviewChat() {
         timestamp: new Date().toISOString(),
       },
     ]);
+  };
+
+  const checkProfileStatus = async () => {
+    if (!publicLink || !candidateId) return;
+
+    try {
+      const statusUrl = `https://nomira-ai-test.up.railway.app/webhook/fb753981-7139-4a49-9bc6-df3e8afc577a/public/vacancies/${publicLink}/candidates/${candidateId}/profile-status`;
+
+      const response = await fetch(statusUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          candidate_id: candidateId,
+          public_link: publicLink,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setProfileStatus(data[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking profile status:', error);
+    }
   };
 
   const sendMessageToAPI = async (message: string) => {
@@ -156,6 +199,7 @@ export function CandidateInterviewChat() {
 
     try {
       await sendMessageToAPI(content);
+      await checkProfileStatus();
     } catch (error) {
       addAssistantMessage('Произошла ошибка при отправке сообщения. Попробуйте еще раз.');
       setIsProcessing(false);
@@ -182,6 +226,20 @@ export function CandidateInterviewChat() {
             Отвечайте на вопросы AI-ассистента. Это поможет нам лучше понять вашу квалификацию.
           </p>
         </div>
+
+        {profileStatus?.profile?.is_ready && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-green-900 mb-1">
+                Собеседование завершено!
+              </h3>
+              <p className="text-green-800">
+                {profileStatus.message}
+              </p>
+            </div>
+          </div>
+        )}
 
         <Card className="h-[600px] flex flex-col">
           <AIChat
