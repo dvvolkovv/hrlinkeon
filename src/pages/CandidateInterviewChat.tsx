@@ -86,8 +86,12 @@ export function CandidateInterviewChat() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Profile status response:', data);
+
         if (Array.isArray(data) && data.length > 0) {
           setProfileStatus(data[0]);
+        } else if (data && typeof data === 'object' && 'profile' in data) {
+          setProfileStatus(data);
         }
       }
     } catch (error) {
