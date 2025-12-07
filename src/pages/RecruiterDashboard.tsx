@@ -24,7 +24,6 @@ import {
   Trash2,
   AlertTriangle,
 } from 'lucide-react';
-import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
 
 interface VacancyStats {
@@ -81,51 +80,47 @@ export function RecruiterDashboard() {
       const result = await response.json();
       const apiVacancies = result.data || [];
 
-      const vacancies: Vacancy[] = apiVacancies.map((apiVacancy: any) => ({
-        id: apiVacancy.id,
-        hr_user_id: apiVacancy.user_id,
-        title: apiVacancy.title,
-        department: apiVacancy.department,
-        level: apiVacancy.level,
-        experience_years: 0,
-        salary_min: apiVacancy.salary_from || null,
-        salary_max: apiVacancy.salary_to || null,
-        work_format: apiVacancy.format,
-        work_schedule: apiVacancy.vacancy_data?.workload || 'full',
-        requirements: apiVacancy.vacancy_data?.requirements || '',
-        responsibilities: apiVacancy.vacancy_data?.responsibilities || '',
-        status: apiVacancy.status,
-        slug: apiVacancy.public_link || apiVacancy.id,
-        created_at: apiVacancy.created_at,
-        updated_at: apiVacancy.updated_at,
-      }));
+      const stats: VacancyStats[] = apiVacancies.map((apiVacancy: any) => {
+        const vacancy: Vacancy = {
+          id: apiVacancy.id,
+          hr_user_id: apiVacancy.user_id,
+          title: apiVacancy.title,
+          department: apiVacancy.department,
+          level: apiVacancy.level,
+          experience_years: 0,
+          salary_min: apiVacancy.salary_from || null,
+          salary_max: apiVacancy.salary_to || null,
+          work_format: apiVacancy.format,
+          work_schedule: apiVacancy.vacancy_data?.workload || 'full',
+          requirements: apiVacancy.vacancy_data?.requirements || '',
+          responsibilities: apiVacancy.vacancy_data?.responsibilities || '',
+          status: apiVacancy.status,
+          slug: apiVacancy.public_link || apiVacancy.id,
+          created_at: apiVacancy.created_at,
+          updated_at: apiVacancy.updated_at,
+        };
 
-      const stats: VacancyStats[] = vacancies.map(vacancy => {
-        const candidates = mockStorage.getCandidatesByVacancyId(vacancy.id);
-
-        const newCount = candidates.filter(c => c.status === 'new').length;
-        const screeningCount = candidates.filter(c => c.status === 'screening').length;
-        const interviewedCount = candidates.filter(c => c.status === 'interviewed').length;
-        const offeredCount = candidates.filter(c => c.status === 'offered').length;
-        const rejectedCount = candidates.filter(c => c.status === 'rejected').length;
-
-        const matchScores = candidates
-          .map(c => mockStorage.getMatchByCandidate(c.id)?.overall_score)
-          .filter((score): score is number => score !== undefined && score !== null);
-
-        const avgMatchScore = matchScores.length > 0
-          ? Math.round(matchScores.reduce((a, b) => a + b, 0) / matchScores.length)
-          : 0;
+        const candidatesData = apiVacancy.candidates || {
+          total: 0,
+          by_status: {
+            new: 0,
+            screening: 0,
+            interviewed: 0,
+            accepted: 0,
+            rejected: 0,
+          },
+          avg_overall_score: null,
+        };
 
         return {
           vacancy,
-          totalCandidates: candidates.length,
-          newCandidates: newCount,
-          screeningCandidates: screeningCount,
-          interviewedCandidates: interviewedCount,
-          offeredCandidates: offeredCount,
-          rejectedCandidates: rejectedCount,
-          avgMatchScore,
+          totalCandidates: candidatesData.total || 0,
+          newCandidates: candidatesData.by_status?.new || 0,
+          screeningCandidates: candidatesData.by_status?.screening || 0,
+          interviewedCandidates: candidatesData.by_status?.interviewed || 0,
+          offeredCandidates: candidatesData.by_status?.accepted || 0,
+          rejectedCandidates: candidatesData.by_status?.rejected || 0,
+          avgMatchScore: candidatesData.avg_overall_score ? Math.round(candidatesData.avg_overall_score) : 0,
         };
       });
 
