@@ -12,7 +12,11 @@ import {
   ChevronRight,
   MessageSquare,
   BarChart3,
-  ArrowLeft
+  ArrowLeft,
+  Code,
+  Heart,
+  Users2,
+  AlertTriangle
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -293,6 +297,46 @@ export function VacancyDashboard() {
                           </div>
                         )}
                       </div>
+
+                      {candidate.scoring && (
+                        <div className="flex flex-wrap items-center gap-3 mb-3">
+                          {candidate.scoring.hard_skills_match !== undefined && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <Code className="w-3.5 h-3.5 text-blue-600" />
+                              <span className="text-gray-600">Hard Skills:</span>
+                              <span className="font-semibold text-gray-900">{Math.round(candidate.scoring.hard_skills_match)}%</span>
+                            </div>
+                          )}
+                          {candidate.scoring.soft_skills_match !== undefined && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <Heart className="w-3.5 h-3.5 text-pink-600" />
+                              <span className="text-gray-600">Soft Skills:</span>
+                              <span className="font-semibold text-gray-900">{Math.round(candidate.scoring.soft_skills_match)}%</span>
+                            </div>
+                          )}
+                          {candidate.scoring.cultural_match !== undefined && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <Users2 className="w-3.5 h-3.5 text-purple-600" />
+                              <span className="text-gray-600">Культура:</span>
+                              <span className="font-semibold text-gray-900">{Math.round(candidate.scoring.cultural_match)}%</span>
+                            </div>
+                          )}
+                          {candidate.scoring.commander_match !== undefined && candidate.scoring.commander_match !== null && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <Users2 className="w-3.5 h-3.5 text-green-600" />
+                              <span className="text-gray-600">Команда:</span>
+                              <span className="font-semibold text-gray-900">{Math.round(candidate.scoring.commander_match)}%</span>
+                            </div>
+                          )}
+                          {candidate.scoring.risk_score !== undefined && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <AlertTriangle className="w-3.5 h-3.5 text-orange-600" />
+                              <span className="text-gray-600">Риск:</span>
+                              <span className="font-semibold text-gray-900">{Math.round(candidate.scoring.risk_score)}%</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1 min-w-0">
