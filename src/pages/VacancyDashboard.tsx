@@ -14,18 +14,32 @@ import {
   BarChart3,
   ArrowLeft
 } from 'lucide-react';
-import { mockStorage } from '../lib/mockData';
-import { Candidate, CandidateMatch, Vacancy } from '../types/database';
+import { Vacancy } from '../types/database';
 
-interface CandidateWithMatch extends Candidate {
-  match?: CandidateMatch;
+interface ApiCandidate {
+  id: string;
+  vacancy_id: string;
+  email: string;
+  name: string;
+  phone: string | null;
+  status: string;
+  status_label: string;
+  resume_file_path: string | null;
+  resume_analysis: any;
+  profile_data: any;
+  profile_is_ready: boolean;
+  scoring: any;
+  github_link: string | null;
+  portfolio_link: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export function VacancyDashboard() {
   const { vacancyId } = useParams<{ vacancyId: string }>();
   const navigate = useNavigate();
   const [vacancy, setVacancy] = useState<Vacancy | null>(null);
-  const [candidates, setCandidates] = useState<CandidateWithMatch[]>([]);
+  const [candidates, setCandidates] = useState<ApiCandidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
@@ -35,22 +49,70 @@ export function VacancyDashboard() {
 
   const loadData = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 600));
+      const userId = localStorage.getItem('user_id');
+      if (!userId || !vacancyId) {
+        console.error('No user_id or vacancyId found');
+        setLoading(false);
+        return;
+      }
 
-      const vacancyData = mockStorage.getVacancyById(vacancyId || '');
-      if (vacancyData) setVacancy(vacancyData);
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/0414c268-60bc-4665-a2ef-99d3468dede8/api/${userId}/vacancies/${vacancyId}/candidates`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      const candidatesData = mockStorage.getCandidatesByVacancyId(vacancyId || '');
+      if (!response.ok) {
+        throw new Error('Failed to fetch candidates');
+      }
 
-      const candidatesWithMatches = candidatesData.map((candidate) => {
-        const matchData = mockStorage.getMatchByCandidate(candidate.id);
-        return {
-          ...candidate,
-          match: matchData || undefined,
-        };
+      const result = await response.json();
+
+      if (Array.isArray(result)) {
+        const candidatesData = result[0]?.data || [];
+        setCandidates(candidatesData);
+      } else if (result.data) {
+        setCandidates(result.data);
+      }
+
+      const vacancyResponse = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId }),
       });
 
-      setCandidates(candidatesWithMatches);
+      if (vacancyResponse.ok) {
+        const vacancyResult = await vacancyResponse.json();
+        const apiVacancies = vacancyResult.data || [];
+        const currentVacancy = apiVacancies.find((v: any) => v.id === vacancyId);
+
+        if (currentVacancy) {
+          setVacancy({
+            id: currentVacancy.id,
+            hr_user_id: currentVacancy.user_id,
+            title: currentVacancy.title,
+            department: currentVacancy.department,
+            level: currentVacancy.level,
+            experience_years: 0,
+            salary_min: currentVacancy.salary_from || null,
+            salary_max: currentVacancy.salary_to || null,
+            work_format: currentVacancy.format,
+            work_schedule: currentVacancy.vacancy_data?.workload || 'full',
+            requirements: currentVacancy.vacancy_data?.requirements || '',
+            responsibilities: currentVacancy.vacancy_data?.responsibilities || '',
+            status: currentVacancy.status,
+            slug: currentVacancy.public_link || currentVacancy.id,
+            created_at: currentVacancy.created_at,
+            updated_at: currentVacancy.updated_at,
+          });
+        }
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -60,22 +122,10 @@ export function VacancyDashboard() {
 
   const updateCandidateStatus = async (candidateId: string, status: string) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      mockStorage.updateCandidate(candidateId, { status });
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Error updating status:', error);
     }
-  };
-
-  const statusLabels: Record<string, string> = {
-    new: 'Новый',
-    screening: 'Скрининг',
-    interviewed: 'Интервью',
-    accepted: 'Принят',
-    rejected: 'Отклонен',
-    reserved: 'В резерве',
   };
 
   const statusColors: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info'> = {
@@ -222,18 +272,22 @@ export function VacancyDashboard() {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-3 mb-2">
-                        <Badge variant={statusColors[candidate.status]}>
-                          {statusLabels[candidate.status]}
+                        <h3 className="font-semibold text-gray-900">{candidate.name}</h3>
+                        <Badge variant={statusColors[candidate.status] || 'info'}>
+                          {candidate.status_label || candidate.status}
                         </Badge>
-                        {candidate.match && (
+                        {candidate.profile_is_ready && (
+                          <Badge variant="success">Профиль готов</Badge>
+                        )}
+                        {candidate.resume_analysis?.relevance_to_vacancy?.match_score && (
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                              Совпадение: {candidate.match.overall_score}%
+                              Совпадение: {candidate.resume_analysis.relevance_to_vacancy.match_score}%
                             </div>
                             <div className="w-16 sm:w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full"
-                                style={{ width: `${candidate.match.overall_score}%` }}
+                                style={{ width: `${candidate.resume_analysis.relevance_to_vacancy.match_score}%` }}
                               />
                             </div>
                           </div>
@@ -251,15 +305,26 @@ export function VacancyDashboard() {
                             <span>{candidate.phone}</span>
                           </div>
                         )}
-                        {candidate.portfolio_url && (
+                        {candidate.portfolio_link && (
                           <a
-                            href={candidate.portfolio_url}
+                            href={candidate.portfolio_link}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 text-forest-600 hover:text-forest-700"
                           >
                             <ExternalLink className="w-4 h-4 flex-shrink-0" />
                             Портфолио
+                          </a>
+                        )}
+                        {candidate.github_link && (
+                          <a
+                            href={candidate.github_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-forest-600 hover:text-forest-700"
+                          >
+                            <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                            GitHub
                           </a>
                         )}
                       </div>
