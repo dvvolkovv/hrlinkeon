@@ -383,7 +383,12 @@ export function RecruiterDashboard() {
         ) : (
           <div className="space-y-6">
             {vacanciesStats.map(({ vacancy, totalCandidates, newCandidates, screeningCandidates, interviewedCandidates, offeredCandidates, rejectedCandidates, avgMatchScore }) => (
-            <Card key={vacancy.id} hover>
+            <Card
+              key={vacancy.id}
+              hover
+              onClick={() => navigate(`/vacancy/${vacancy.id}/dashboard`)}
+              className="cursor-pointer"
+            >
               <CardHeader>
                 <div className="flex flex-col gap-4">
                   <div className="flex-1">
@@ -409,7 +414,7 @@ export function RecruiterDashboard() {
                       <span>{formatSalary(vacancy.salary_min, vacancy.salary_max)}</span>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                     <Link to={`/vacancy/${vacancy.id}/edit`}>
                       <Button variant="outline" size="sm" className="gap-2">
                         <Edit className="w-4 h-4" />
