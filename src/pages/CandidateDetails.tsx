@@ -446,10 +446,10 @@ export function CandidateDetails() {
                                 <span className="ml-2 text-gray-900 font-medium">{candidate.resume_analysis.personal_info.name}</span>
                               </div>
                             )}
-                            {candidate.resume_analysis.personal_info.birth_date && (
+                            {(candidate.resume_analysis.personal_info.birth_date || candidate.resume_analysis.personal_info.dob) && (
                               <div>
                                 <span className="text-gray-600">Дата рождения:</span>
-                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.birth_date}</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.birth_date || candidate.resume_analysis.personal_info.dob}</span>
                               </div>
                             )}
                             {candidate.resume_analysis.personal_info.gender && (
@@ -470,16 +470,16 @@ export function CandidateDetails() {
                                 <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.citizenship}</span>
                               </div>
                             )}
-                            {candidate.resume_analysis.personal_info.contact_phone && (
+                            {(candidate.resume_analysis.personal_info.contact_phone || candidate.resume_analysis.personal_info.contact?.phone) && (
                               <div>
                                 <span className="text-gray-600">Телефон:</span>
-                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.contact_phone}</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.contact_phone || candidate.resume_analysis.personal_info.contact?.phone}</span>
                               </div>
                             )}
-                            {candidate.resume_analysis.personal_info.contact_email && (
+                            {(candidate.resume_analysis.personal_info.contact_email || candidate.resume_analysis.personal_info.contact?.email) && (
                               <div>
                                 <span className="text-gray-600">Email:</span>
-                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.contact_email}</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.contact_email || candidate.resume_analysis.personal_info.contact?.email}</span>
                               </div>
                             )}
                             {candidate.resume_analysis.personal_info.relocation_ready !== undefined && (
@@ -574,7 +574,15 @@ export function CandidateDetails() {
                                 {exp.stack && (
                                   <div className="mt-2">
                                     <p className="text-sm font-medium text-gray-700 mb-1">Стек технологий:</p>
-                                    <p className="text-sm text-gray-600">{exp.stack}</p>
+                                    {Array.isArray(exp.stack) ? (
+                                      <div className="flex flex-wrap gap-1">
+                                        {exp.stack.map((tech: string, tidx: number) => (
+                                          <Badge key={tidx} variant="primary">{tech}</Badge>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-gray-600">{exp.stack}</p>
+                                    )}
                                   </div>
                                 )}
                                 {exp.achievements && exp.achievements.length > 0 && (
@@ -625,6 +633,20 @@ export function CandidateDetails() {
                               </li>
                             ))}
                           </ul>
+                        </div>
+                      )}
+
+                      {candidate.resume_analysis.hobbies_interests && candidate.resume_analysis.hobbies_interests.length > 0 && (
+                        <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Heart className="w-5 h-5 text-pink-600" />
+                            Хобби и интересы
+                          </h3>
+                          <div className="flex flex-wrap gap-2">
+                            {candidate.resume_analysis.hobbies_interests.map((hobby: string, idx: number) => (
+                              <Badge key={idx} variant="info">{hobby}</Badge>
+                            ))}
+                          </div>
                         </div>
                       )}
 
