@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -87,6 +87,7 @@ interface CandidateDetailsResponse {
 export function CandidateDetails() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [data, setData] = useState<CandidateDetailsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +105,29 @@ export function CandidateDetails() {
       if (!userId) {
         setError('Не удалось получить данные пользователя');
         return;
+      }
+
+      const vacancyIdFromState = (location.state as { vacancyId?: string })?.vacancyId;
+
+      if (vacancyIdFromState) {
+        const response = await fetch(
+          `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-get-candidate-details/api/vacancies/${vacancyIdFromState}/candidates/${candidateId}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: userId }),
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setData(result);
+            return;
+          }
+        }
       }
 
       const vacanciesResponse = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies', {

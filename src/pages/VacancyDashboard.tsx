@@ -469,7 +469,10 @@ export function VacancyDashboard() {
                           </Button>
                         </>
                       )}
-                      <Link to={`/candidate/${candidate.id}/details`}>
+                      <Link
+                        to={`/candidate/${candidate.id}/details`}
+                        state={{ vacancyId }}
+                      >
                         <Button size="sm" variant="ghost">
                           <ChevronRight className="w-4 h-4" />
                         </Button>
