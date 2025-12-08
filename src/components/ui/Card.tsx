@@ -23,10 +23,11 @@ export function Card({ children, className = '', hover = false, onClick }: CardP
 interface CardHeaderProps {
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
-export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`p-6 border-b border-gray-100 ${className}`}>{children}</div>;
+export function CardHeader({ children, className = '', onClick }: CardHeaderProps) {
+  return <div className={`p-6 border-b border-gray-100 ${className}`} onClick={onClick}>{children}</div>;
 }
 
 interface CardContentProps {
