@@ -26,6 +26,8 @@ import {
   GraduationCap,
   Award,
   Languages,
+  X,
+  Calendar,
 } from 'lucide-react';
 
 interface ApiCandidate {
@@ -97,6 +99,8 @@ export function CandidateDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resumeExpanded, setResumeExpanded] = useState(false);
+  const [chatExpanded, setChatExpanded] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
   useEffect(() => {
     loadCandidateData();
@@ -192,6 +196,50 @@ export function CandidateDetails() {
     }
   };
 
+  const updateCandidateStatus = async (newStatus: string) => {
+    if (!data || statusUpdating) return;
+
+    try {
+      setStatusUpdating(true);
+
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        alert('Не удалось получить данные пользователя');
+        return;
+      }
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-candidate-status/api/vacancies/${data.vacancy.id}/candidates/${candidateId}/status`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            status: newStatus,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          await loadCandidateData();
+        } else {
+          alert('Ошибка при обновлении статуса');
+        }
+      } else {
+        alert('Ошибка при обновлении статуса');
+      }
+    } catch (error) {
+      console.error('Error updating candidate status:', error);
+      alert('Ошибка при обновлении статуса');
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
+
   const statusColors: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info'> = {
     new: 'info',
     screening: 'warning',
@@ -257,7 +305,7 @@ export function CandidateDetails() {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
                       <h1 className="text-2xl font-bold text-gray-900">{candidate.name}</h1>
@@ -305,6 +353,27 @@ export function CandidateDetails() {
                       )}
                     </div>
                   </div>
+                  {candidate.status !== 'rejected' && candidate.status !== 'interviewed' && (
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={() => updateCandidateStatus('interviewed')}
+                        disabled={statusUpdating}
+                        className="gap-2 whitespace-nowrap"
+                      >
+                        <Calendar className="w-4 h-4" />
+                        На интервью
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => updateCandidateStatus('rejected')}
+                        disabled={statusUpdating}
+                        className="gap-2 whitespace-nowrap border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                      >
+                        <X className="w-4 h-4" />
+                        Отказать
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
             </Card>
@@ -703,63 +772,75 @@ export function CandidateDetails() {
 
             {chat_history && chat_history.length > 0 && (
               <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-forest-600" />
-                    <h2 className="text-xl font-bold text-gray-900">Диалог с AI-ассистентом</h2>
+                <CardHeader
+                  className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setChatExpanded(!chatExpanded)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-forest-600" />
+                      <h2 className="text-xl font-bold text-gray-900">Диалог с AI-ассистентом</h2>
+                    </div>
+                    {chatExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                    )}
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {chat_history.map((message, index) => (
-                      <div
-                        key={index}
-                        className={`flex gap-3 ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}
-                      >
+                {chatExpanded && (
+                  <CardContent>
+                    <div className="space-y-4">
+                      {chat_history.map((message, index) => (
                         <div
-                          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                            message.role === 'assistant'
-                              ? 'bg-gradient-to-br from-forest-500 to-forest-600'
-                              : message.role === 'human'
-                              ? 'bg-gradient-to-br from-blue-500 to-blue-600'
-                              : 'bg-gradient-to-br from-primary-500 to-primary-600'
-                          }`}
-                        >
-                          {message.role === 'assistant' ? (
-                            <Bot className="w-5 h-5 text-white" />
-                          ) : (
-                            <User className="w-5 h-5 text-white" />
-                          )}
-                        </div>
-                        <div
-                          className={`flex-1 ${message.role === 'assistant' ? 'text-left' : 'text-right'}`}
+                          key={index}
+                          className={`flex gap-3 ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}
                         >
                           <div
-                            className={`inline-block max-w-[85%] p-4 rounded-lg ${
+                            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                               message.role === 'assistant'
-                                ? 'bg-gray-100 text-gray-900'
+                                ? 'bg-gradient-to-br from-forest-500 to-forest-600'
                                 : message.role === 'human'
-                                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                                : 'bg-gradient-to-br from-primary-500 to-primary-600 text-white'
+                                ? 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                : 'bg-gradient-to-br from-primary-500 to-primary-600'
                             }`}
                           >
-                            <p className="text-sm leading-relaxed">{message.content}</p>
+                            {message.role === 'assistant' ? (
+                              <Bot className="w-5 h-5 text-white" />
+                            ) : (
+                              <User className="w-5 h-5 text-white" />
+                            )}
+                          </div>
+                          <div
+                            className={`flex-1 ${message.role === 'assistant' ? 'text-left' : 'text-right'}`}
+                          >
+                            <div
+                              className={`inline-block max-w-[85%] p-4 rounded-lg ${
+                                message.role === 'assistant'
+                                  ? 'bg-gray-100 text-gray-900'
+                                  : message.role === 'human'
+                                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                                  : 'bg-gradient-to-br from-primary-500 to-primary-600 text-white'
+                              }`}
+                            >
+                              <p className="text-sm leading-relaxed">{message.content}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {candidate.comments && candidate.status === 'rejected' && (
-                    <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
-                      <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5" />
-                        Причина отклонения
-                      </h3>
-                      <p className="text-red-800 leading-relaxed">{candidate.comments}</p>
+                      ))}
                     </div>
-                  )}
-                </CardContent>
+
+                    {candidate.comments && candidate.status === 'rejected' && (
+                      <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                          <AlertCircle className="w-5 h-5" />
+                          Причина отклонения
+                        </h3>
+                        <p className="text-red-800 leading-relaxed">{candidate.comments}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
               </Card>
             )}
           </div>
