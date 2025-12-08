@@ -73,7 +73,6 @@ interface ApiVacancy {
 interface ChatMessage {
   role: string;
   content: string;
-  timestamp: string;
 }
 
 interface CandidateDetailsResponse {
@@ -425,6 +424,8 @@ export function CandidateDetails() {
                           className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                             message.role === 'assistant'
                               ? 'bg-gradient-to-br from-forest-500 to-forest-600'
+                              : message.role === 'human'
+                              ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                               : 'bg-gradient-to-br from-primary-500 to-primary-600'
                           }`}
                         >
@@ -441,14 +442,13 @@ export function CandidateDetails() {
                             className={`inline-block max-w-[85%] p-4 rounded-lg ${
                               message.role === 'assistant'
                                 ? 'bg-gray-100 text-gray-900'
+                                : message.role === 'human'
+                                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
                                 : 'bg-gradient-to-br from-primary-500 to-primary-600 text-white'
                             }`}
                           >
                             <p className="text-sm leading-relaxed">{message.content}</p>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1 px-2">
-                            {formatDate(message.timestamp)}
-                          </p>
                         </div>
                       </div>
                     ))}
