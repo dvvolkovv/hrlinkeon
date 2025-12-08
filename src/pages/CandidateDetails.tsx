@@ -20,6 +20,12 @@ import {
   Heart,
   Users2,
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Briefcase,
+  GraduationCap,
+  Award,
+  Languages,
 } from 'lucide-react';
 
 interface ApiCandidate {
@@ -90,6 +96,7 @@ export function CandidateDetails() {
   const [data, setData] = useState<CandidateDetailsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [resumeExpanded, setResumeExpanded] = useState(false);
 
   useEffect(() => {
     loadCandidateData();
@@ -402,6 +409,185 @@ export function CandidateDetails() {
                     )}
                   </div>
                 </CardContent>
+              </Card>
+            )}
+
+            {candidate.resume_analysis && (
+              <Card>
+                <CardHeader
+                  className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setResumeExpanded(!resumeExpanded)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-forest-600" />
+                      <h2 className="text-xl font-bold text-gray-900">Анализ резюме</h2>
+                    </div>
+                    {resumeExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                    )}
+                  </div>
+                </CardHeader>
+                {resumeExpanded && (
+                  <CardContent>
+                    <div className="space-y-6">
+                      {candidate.resume_analysis.summary && (
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-2">Резюме</h3>
+                          <p className="text-gray-700 leading-relaxed">{candidate.resume_analysis.summary}</p>
+                        </div>
+                      )}
+
+                      {candidate.resume_analysis.skills && (
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Code className="w-5 h-5 text-blue-600" />
+                            Навыки
+                          </h3>
+                          <div className="space-y-4">
+                            {candidate.resume_analysis.skills.languages && candidate.resume_analysis.skills.languages.length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                  <Languages className="w-4 h-4 text-gray-500" />
+                                  Языки
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {candidate.resume_analysis.skills.languages.map((lang: string, idx: number) => (
+                                    <Badge key={idx} variant="info">{lang}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {candidate.resume_analysis.skills.hard_skills && candidate.resume_analysis.skills.hard_skills.length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-2">Hard Skills</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {candidate.resume_analysis.skills.hard_skills.map((skill: string, idx: number) => (
+                                    <Badge key={idx} variant="primary">{skill}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {candidate.resume_analysis.skills.soft_skills && candidate.resume_analysis.skills.soft_skills.length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-2">Soft Skills</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {candidate.resume_analysis.skills.soft_skills.map((skill: string, idx: number) => (
+                                    <Badge key={idx} variant="success">{skill}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {candidate.resume_analysis.experience && candidate.resume_analysis.experience.length > 0 && (
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-purple-600" />
+                            Опыт работы
+                          </h3>
+                          <div className="space-y-4">
+                            {candidate.resume_analysis.experience.map((exp: any, idx: number) => (
+                              <div key={idx} className="border-l-2 border-forest-300 pl-4">
+                                <h4 className="font-medium text-gray-900">{exp.position}</h4>
+                                <p className="text-sm text-gray-600">{exp.company}</p>
+                                {exp.period && <p className="text-sm text-gray-500">{exp.period}</p>}
+                                {exp.description && <p className="text-sm text-gray-700 mt-2">{exp.description}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {candidate.resume_analysis.education && candidate.resume_analysis.education.length > 0 && (
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <GraduationCap className="w-5 h-5 text-blue-600" />
+                            Образование
+                          </h3>
+                          <div className="space-y-3">
+                            {candidate.resume_analysis.education.map((edu: any, idx: number) => (
+                              <div key={idx} className="border-l-2 border-blue-300 pl-4">
+                                <h4 className="font-medium text-gray-900">{edu.degree}</h4>
+                                <p className="text-sm text-gray-600">{edu.institution}</p>
+                                {edu.period && <p className="text-sm text-gray-500">{edu.period}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {candidate.resume_analysis.key_achievements && candidate.resume_analysis.key_achievements.length > 0 && (
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Award className="w-5 h-5 text-amber-600" />
+                            Ключевые достижения
+                          </h3>
+                          <ul className="space-y-2">
+                            {candidate.resume_analysis.key_achievements.map((achievement: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2 text-gray-700">
+                                <CheckCircle className="w-4 h-4 text-forest-600 mt-1 flex-shrink-0" />
+                                <span>{achievement}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {candidate.resume_analysis.relevance_to_vacancy && (
+                        <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                          <h3 className="font-semibold text-amber-900 mb-3">Соответствие вакансии</h3>
+                          <div className="space-y-3">
+                            {candidate.resume_analysis.relevance_to_vacancy.match_score && (
+                              <div>
+                                <p className="text-sm text-amber-700 mb-1">Оценка соответствия</p>
+                                <p className="text-2xl font-bold text-amber-900">{candidate.resume_analysis.relevance_to_vacancy.match_score}%</p>
+                              </div>
+                            )}
+
+                            {candidate.resume_analysis.relevance_to_vacancy.strengths && candidate.resume_analysis.relevance_to_vacancy.strengths.length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-amber-900 mb-2">Сильные стороны</p>
+                                <ul className="space-y-1">
+                                  {candidate.resume_analysis.relevance_to_vacancy.strengths.map((strength: string, idx: number) => (
+                                    <li key={idx} className="text-sm text-amber-800 flex items-start gap-2">
+                                      <CheckCircle className="w-3 h-3 mt-1 flex-shrink-0" />
+                                      <span>{strength}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {candidate.resume_analysis.relevance_to_vacancy.missing_skills && candidate.resume_analysis.relevance_to_vacancy.missing_skills.length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium text-amber-900 mb-2">Недостающие навыки</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {candidate.resume_analysis.relevance_to_vacancy.missing_skills.map((skill: string, idx: number) => (
+                                    <Badge key={idx} variant="warning">{skill}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {candidate.resume_analysis.relevance_to_vacancy.recommendations && (
+                              <div>
+                                <p className="text-sm font-medium text-amber-900 mb-1">Рекомендации</p>
+                                <p className="text-sm text-amber-800">{candidate.resume_analysis.relevance_to_vacancy.recommendations}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                )}
               </Card>
             )}
 
