@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { Textarea } from '../components/ui/Textarea';
 import {
   ArrowLeft,
   Mail,
@@ -101,6 +102,9 @@ export function CandidateDetails() {
   const [resumeExpanded, setResumeExpanded] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectComment, setRejectComment] = useState('');
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useEffect(() => {
     loadCandidateData();
@@ -240,6 +244,63 @@ export function CandidateDetails() {
     }
   };
 
+  const openRejectModal = () => {
+    setRejectComment('');
+    setShowRejectModal(true);
+  };
+
+  const closeRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectComment('');
+  };
+
+  const handleRejectCandidate = async () => {
+    if (!data || !candidateId) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    if (!rejectComment.trim()) {
+      alert('Пожалуйста, укажите причину отклонения');
+      return;
+    }
+
+    try {
+      setIsRejecting(true);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-reject-candidate/api/vacancies/${data.vacancy.id}/candidates/${candidateId}/reject`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            comment: rejectComment.trim(),
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to reject candidate');
+      }
+
+      closeRejectModal();
+      await loadCandidateData();
+    } catch (error) {
+      console.error('Failed to reject candidate:', error);
+      alert('Не удалось отклонить кандидата. Попробуйте еще раз.');
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
   const statusColors: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info'> = {
     new: 'info',
     screening: 'warning',
@@ -365,12 +426,12 @@ export function CandidateDetails() {
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() => updateCandidateStatus('rejected')}
+                        onClick={openRejectModal}
                         disabled={statusUpdating}
                         className="gap-2 whitespace-nowrap border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
                       >
                         <X className="w-4 h-4" />
-                        Отказать
+                        Отклонить
                       </Button>
                     </div>
                   )}
@@ -927,6 +988,63 @@ export function CandidateDetails() {
           </div>
         </div>
       </div>
+
+      {showRejectModal && data && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-lg w-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Отклонить кандидата</h3>
+                    <p className="text-sm text-gray-600">{data.candidate.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeRejectModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isRejecting}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Пожалуйста, укажите причину отклонения. Это поможет кандидату понять решение и улучшить свои навыки.
+              </p>
+              <Textarea
+                label="Комментарий"
+                placeholder="Например: Благодарим за обращение! Мы выбрали другого кандидата. Желаем вам успехов в поиске работы мечты!"
+                value={rejectComment}
+                onChange={(e) => setRejectComment(e.target.value)}
+                rows={4}
+                disabled={isRejecting}
+              />
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={closeRejectModal}
+                  disabled={isRejecting}
+                  className="flex-1"
+                >
+                  Отмена
+                </Button>
+                <Button
+                  onClick={handleRejectCandidate}
+                  disabled={isRejecting || !rejectComment.trim()}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  {isRejecting ? 'Отклонение...' : 'Отклонить кандидата'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
