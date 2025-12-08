@@ -55,7 +55,7 @@ export function VacancyCandidatesChat() {
   };
 
   const sendMessageToAPI = async (message: string, userId: string, vacancyId: string) => {
-    const apiUrl = `https://nomira-ai-test.up.railway.app/webhook/b4e6987e-eeab-4508-8192-c96ce0bafdfb/api/vacancies/${vacancyId}/ai-candidates-chat`;
+    const apiUrl = `https://nomira-ai-test.up.railway.app/webhook/82aa583e-af84-4dde-87ce-1b924752ff1e/api/vacancies/${vacancyId}/ai-candidates-chat`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',
