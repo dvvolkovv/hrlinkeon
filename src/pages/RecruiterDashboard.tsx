@@ -80,7 +80,11 @@ export function RecruiterDashboard() {
       const result = await response.json();
       const apiVacancies = result.data || [];
 
-      const stats: VacancyStats[] = apiVacancies.map((apiVacancy: any) => {
+      const validVacancies = apiVacancies.filter((apiVacancy: any) =>
+        apiVacancy.id && apiVacancy.title
+      );
+
+      const stats: VacancyStats[] = validVacancies.map((apiVacancy: any) => {
         const vacancy: Vacancy = {
           id: apiVacancy.id,
           hr_user_id: apiVacancy.user_id,
@@ -382,8 +386,23 @@ export function RecruiterDashboard() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          {vacanciesStats.map(({ vacancy, totalCandidates, newCandidates, screeningCandidates, interviewedCandidates, offeredCandidates, rejectedCandidates, avgMatchScore }) => (
+        {vacanciesStats.length === 0 ? (
+          <Card>
+            <CardContent className="py-16 text-center">
+              <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">Вакансий пока нет</h3>
+              <p className="text-gray-500 mb-6">Создайте первую вакансию, чтобы начать работу</p>
+              <Link to="/create-vacancy">
+                <Button className="gap-2">
+                  <Plus className="w-5 h-5" />
+                  Создать вакансию
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {vacanciesStats.map(({ vacancy, totalCandidates, newCandidates, screeningCandidates, interviewedCandidates, offeredCandidates, rejectedCandidates, avgMatchScore }) => (
             <Card key={vacancy.id} hover>
               <CardHeader>
                 <div className="flex flex-col gap-4">
@@ -539,22 +558,7 @@ export function RecruiterDashboard() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        {vacanciesStats.length === 0 && (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Нет вакансий</h3>
-              <p className="text-gray-600 mb-6">Создайте первую вакансию для начала работы</p>
-              <Link to="/create-vacancy">
-                <Button className="gap-2">
-                  <Plus className="w-5 h-5" />
-                  Создать вакансию
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+          </div>
         )}
       </div>
 
