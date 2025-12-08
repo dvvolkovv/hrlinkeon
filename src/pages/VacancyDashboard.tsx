@@ -18,7 +18,8 @@ import {
   Heart,
   Users2,
   AlertTriangle,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -232,14 +233,25 @@ export function VacancyDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/recruiter')}
-            className="gap-2 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Назад к вакансиям
-          </Button>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/recruiter')}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Назад к вакансиям
+            </Button>
+            {candidates.length > 0 && (
+              <Button
+                onClick={() => navigate(`/vacancy/${vacancyId}/candidates-chat`)}
+                className="gap-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700"
+              >
+                <Sparkles className="w-4 h-4" />
+                AI-советник по кандидатам
+              </Button>
+            )}
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {vacancy?.title || 'Управление кандидатами'}
           </h1>

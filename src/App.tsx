@@ -7,6 +7,7 @@ import { CreateVacancyManual } from './pages/CreateVacancyManual';
 import { EditVacancy } from './pages/EditVacancy';
 import { VacancyProfiling } from './pages/VacancyProfiling';
 import { VacancyChat } from './pages/VacancyChat';
+import { VacancyCandidatesChat } from './pages/VacancyCandidatesChat';
 import { PublicVacancy } from './pages/PublicVacancy';
 import { CandidateScreening } from './pages/CandidateScreening';
 import { CandidateStatus } from './pages/CandidateStatus';
@@ -30,6 +31,7 @@ function App() {
         <Route path="/vacancy/:vacancyId/edit" element={<EditVacancy />} />
         <Route path="/vacancy/:id/profiling" element={<VacancyProfiling />} />
         <Route path="/vacancy/:id/chat" element={<VacancyChat />} />
+        <Route path="/vacancy/:vacancyId/candidates-chat" element={<VacancyCandidatesChat />} />
         <Route path="/vacancy/:slug" element={<PublicVacancy />} />
         <Route path="/public/vacancies/:publicLink/candidates/:candidateId/status" element={<CandidateStatus />} />
         <Route path="/public/vacancies/:publicLink/candidates/:candidateId/interview" element={<CandidateInterviewChat />} />
