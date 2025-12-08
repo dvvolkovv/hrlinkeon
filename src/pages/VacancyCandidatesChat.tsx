@@ -172,7 +172,7 @@ export function VacancyCandidatesChat() {
       <div className="max-w-4xl mx-auto">
         <Button
           variant="outline"
-          onClick={() => navigate(`/vacancy/${vacancyId}`)}
+          onClick={() => navigate(`/vacancy/${vacancyId}/dashboard`)}
           className="gap-2 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
