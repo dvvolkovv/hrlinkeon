@@ -3,27 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import {
-  Briefcase,
-  Users,
-  TrendingUp,
-  Clock,
-  CheckCircle,
-  XCircle,
-  UserCheck,
-  Eye,
-  Plus,
-  BarChart3,
-  Share2,
-  Check,
-  Coins,
-  LogOut,
-  Edit,
-  Send,
-  MessageSquare,
-  Trash2,
-  AlertTriangle,
-} from 'lucide-react';
+import { Briefcase, Users, TrendingUp, Clock, CheckCircle, XCircle, UserCheck, Eye, Plus, BarChart3, Share2, Check, Coins, LogOut, CreditCard as Edit, Send, MessageSquare, Trash2, AlertTriangle } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
 interface VacancyStats {
