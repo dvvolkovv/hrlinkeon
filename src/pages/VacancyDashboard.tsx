@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -10,7 +10,6 @@ import {
   Mail,
   Phone,
   ExternalLink,
-  ChevronRight,
   MessageSquare,
   BarChart3,
   ArrowLeft,
@@ -349,7 +348,8 @@ export function VacancyDashboard() {
                 {filteredCandidates.map((candidate) => (
                   <div
                     key={candidate.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-forest-300 hover:shadow-sm transition-all duration-200"
+                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-forest-300 hover:shadow-sm transition-all duration-200 cursor-pointer"
+                    onClick={() => navigate(`/candidate/${candidate.id}/details`, { state: { vacancyId } })}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-3 mb-2">
@@ -432,6 +432,7 @@ export function VacancyDashboard() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 text-forest-600 hover:text-forest-700"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <ExternalLink className="w-4 h-4 flex-shrink-0" />
                             Портфолио
@@ -443,6 +444,7 @@ export function VacancyDashboard() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 text-forest-600 hover:text-forest-700"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <ExternalLink className="w-4 h-4 flex-shrink-0" />
                             GitHub
@@ -451,7 +453,7 @@ export function VacancyDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       {candidate.status === 'new' && (
                         <Button
                           size="sm"
@@ -481,14 +483,6 @@ export function VacancyDashboard() {
                           </Button>
                         </>
                       )}
-                      <Link
-                        to={`/candidate/${candidate.id}/details`}
-                        state={{ vacancyId }}
-                      >
-                        <Button size="sm" variant="ghost">
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
-                      </Link>
                     </div>
                   </div>
                 ))}
