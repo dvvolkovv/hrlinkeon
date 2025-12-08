@@ -294,6 +294,17 @@ export function RecruiterDashboard() {
                     Пополнить токены
                   </Button>
                 </Link>
+                <Button
+                  variant="outline"
+                  className="gap-2 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  onClick={() => {
+                    localStorage.clear();
+                    navigate('/login');
+                  }}
+                >
+                  <LogOut className="w-5 h-5" />
+                  Выход
+                </Button>
               </div>
             </div>
             <Card className="bg-gradient-to-br from-forest-500 to-forest-600">
