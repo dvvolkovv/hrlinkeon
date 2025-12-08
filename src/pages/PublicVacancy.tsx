@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -31,6 +31,7 @@ interface PublicVacancyResponse {
 export function PublicVacancy() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const formRef = useRef<HTMLDivElement>(null);
   const [vacancy, setVacancy] = useState<Vacancy | null>(null);
   const [additionalInfo, setAdditionalInfo] = useState<{ description?: string; benefits?: string; pitch?: string }>({});
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,14 @@ export function PublicVacancy() {
   useEffect(() => {
     loadVacancy();
   }, [slug]);
+
+  useEffect(() => {
+    if (showApplicationForm && formRef.current) {
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [showApplicationForm]);
 
   const extractYearsFromExperience = (experience?: string): number => {
     if (!experience) return 0;
@@ -299,13 +308,15 @@ export function PublicVacancy() {
         )}
 
         {showApplicationForm && vacancy && vacancy.slug && (
-          <CandidateApplicationForm
-            vacancyId={vacancy.id}
-            publicLink={vacancy.slug}
-            onSuccess={handleApplicationSuccess}
-            onCancel={() => setShowApplicationForm(false)}
-            onRejected={handleApplicationRejected}
-          />
+          <div ref={formRef}>
+            <CandidateApplicationForm
+              vacancyId={vacancy.id}
+              publicLink={vacancy.slug}
+              onSuccess={handleApplicationSuccess}
+              onCancel={() => setShowApplicationForm(false)}
+              onRejected={handleApplicationRejected}
+            />
+          </div>
         )}
       </div>
     </div>
