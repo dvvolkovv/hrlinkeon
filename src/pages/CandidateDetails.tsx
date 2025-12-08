@@ -433,6 +433,71 @@ export function CandidateDetails() {
                 {resumeExpanded && (
                   <CardContent>
                     <div className="space-y-6">
+                      {candidate.resume_analysis.personal_info && (
+                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <User className="w-5 h-5 text-gray-600" />
+                            Личная информация
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            {candidate.resume_analysis.personal_info.name && (
+                              <div>
+                                <span className="text-gray-600">ФИО:</span>
+                                <span className="ml-2 text-gray-900 font-medium">{candidate.resume_analysis.personal_info.name}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.birth_date && (
+                              <div>
+                                <span className="text-gray-600">Дата рождения:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.birth_date}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.gender && (
+                              <div>
+                                <span className="text-gray-600">Пол:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.gender}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.location && (
+                              <div>
+                                <span className="text-gray-600">Локация:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.location}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.citizenship && (
+                              <div>
+                                <span className="text-gray-600">Гражданство:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.citizenship}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.contact_phone && (
+                              <div>
+                                <span className="text-gray-600">Телефон:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.contact_phone}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.contact_email && (
+                              <div>
+                                <span className="text-gray-600">Email:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.contact_email}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.relocation_ready !== undefined && (
+                              <div>
+                                <span className="text-gray-600">Готов к переезду:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.relocation_ready ? 'Да' : 'Нет'}</span>
+                              </div>
+                            )}
+                            {candidate.resume_analysis.personal_info.business_trips_ready !== undefined && (
+                              <div>
+                                <span className="text-gray-600">Готов к командировкам:</span>
+                                <span className="ml-2 text-gray-900">{candidate.resume_analysis.personal_info.business_trips_ready ? 'Да' : 'Нет'}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {candidate.resume_analysis.summary && (
                         <div>
                           <h3 className="font-semibold text-gray-900 mb-2">Резюме</h3>
@@ -454,8 +519,10 @@ export function CandidateDetails() {
                                   Языки
                                 </p>
                                 <div className="flex flex-wrap gap-2">
-                                  {candidate.resume_analysis.skills.languages.map((lang: string, idx: number) => (
-                                    <Badge key={idx} variant="info">{lang}</Badge>
+                                  {candidate.resume_analysis.skills.languages.map((lang: any, idx: number) => (
+                                    <Badge key={idx} variant="info">
+                                      {typeof lang === 'string' ? lang : `${lang.language} (${lang.level})`}
+                                    </Badge>
                                   ))}
                                 </div>
                               </div>
@@ -494,11 +561,32 @@ export function CandidateDetails() {
                           </h3>
                           <div className="space-y-4">
                             {candidate.resume_analysis.experience.map((exp: any, idx: number) => (
-                              <div key={idx} className="border-l-2 border-forest-300 pl-4">
+                              <div key={idx} className="border-l-2 border-forest-300 pl-4 pb-4">
                                 <h4 className="font-medium text-gray-900">{exp.position}</h4>
                                 <p className="text-sm text-gray-600">{exp.company}</p>
-                                {exp.period && <p className="text-sm text-gray-500">{exp.period}</p>}
+                                {exp.period && <p className="text-sm text-gray-500 mb-2">{exp.period}</p>}
+                                {exp.team_size && (
+                                  <p className="text-sm text-gray-600 mb-2">
+                                    <span className="font-medium">Размер команды:</span> {exp.team_size}
+                                  </p>
+                                )}
                                 {exp.description && <p className="text-sm text-gray-700 mt-2">{exp.description}</p>}
+                                {exp.stack && (
+                                  <div className="mt-2">
+                                    <p className="text-sm font-medium text-gray-700 mb-1">Стек технологий:</p>
+                                    <p className="text-sm text-gray-600">{exp.stack}</p>
+                                  </div>
+                                )}
+                                {exp.achievements && exp.achievements.length > 0 && (
+                                  <div className="mt-2">
+                                    <p className="text-sm font-medium text-gray-700 mb-1">Достижения:</p>
+                                    <ul className="list-disc list-inside space-y-1">
+                                      {exp.achievements.map((achievement: string, aidx: number) => (
+                                        <li key={aidx} className="text-sm text-gray-600">{achievement}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
