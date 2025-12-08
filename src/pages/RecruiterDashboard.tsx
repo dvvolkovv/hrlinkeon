@@ -462,7 +462,7 @@ export function RecruiterDashboard() {
                     <Link to={`/vacancy/${vacancy.id}/dashboard`}>
                       <Button variant="outline" size="sm" className="gap-2">
                         <Eye className="w-4 h-4" />
-                        <span className="hidden sm:inline">Просмотр</span>
+                        <span className="hidden sm:inline">Кандидаты</span>
                       </Button>
                     </Link>
                     <Button
