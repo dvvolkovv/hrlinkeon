@@ -518,7 +518,7 @@ export function RecruiterDashboard() {
                   <div className="text-center p-3 bg-green-50 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <p className="text-xs text-green-600">Офферы</p>
+                      <p className="text-xs text-green-600">Предложение</p>
                     </div>
                     <p className="text-2xl font-bold text-green-900">{offeredCandidates}</p>
                   </div>
