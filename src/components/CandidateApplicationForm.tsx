@@ -172,7 +172,7 @@ export function CandidateApplicationForm({
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-forest-500 transition-colors duration-200">
               <input
                 type="file"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.rtf,.xml,.txt"
                 onChange={handleFileChange}
                 className="hidden"
                 id="resume-upload"
@@ -196,7 +196,7 @@ export function CandidateApplicationForm({
                     <span className="text-sm font-medium text-gray-700">
                       Нажмите для загрузки резюме
                     </span>
-                    <span className="text-xs text-gray-500">PDF, DOC, DOCX до 10 МБ</span>
+                    <span className="text-xs text-gray-500">PDF, RTF, XML, TXT до 10 МБ</span>
                   </>
                 )}
               </label>
