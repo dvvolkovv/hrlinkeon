@@ -286,25 +286,34 @@ export function CreateVacancy() {
 
       const responseData = await response.json();
 
-      if (!responseData.id) {
+      if (!responseData.vacancy_id) {
         throw new Error('Некорректный формат ответа от сервера');
       }
 
-      const vacancyId = responseData.id;
+      const vacancyId = responseData.vacancy_id;
       setCurrentVacancyId(vacancyId);
       localStorage.setItem('current_vacancy_id', vacancyId);
 
       const vacancyData = responseData.vacancy_data || {};
 
-      const levelValue = vacancyData.level?.toLowerCase();
-      const validLevel = ['junior', 'middle', 'senior', 'lead'].includes(levelValue)
-        ? levelValue
-        : 'middle';
+      const levelMapping: Record<string, 'junior' | 'middle' | 'senior' | 'lead'> = {
+        'младший': 'junior',
+        'junior': 'junior',
+        'средний': 'middle',
+        'middle': 'middle',
+        'старший': 'senior',
+        'senior': 'senior',
+        'ведущий': 'lead',
+        'lead': 'lead',
+      };
+
+      const levelValue = vacancyData.level?.toLowerCase() || '';
+      const validLevel = levelMapping[levelValue] || 'middle';
 
       setForm({
         title: vacancyData.title || '',
         department: vacancyData.department || '',
-        level: validLevel as 'junior' | 'middle' | 'senior' | 'lead',
+        level: validLevel,
         experience_years: 0,
         salary_min: vacancyData.salary_from ? String(vacancyData.salary_from) : '',
         salary_max: vacancyData.salary_to ? String(vacancyData.salary_to) : '',
