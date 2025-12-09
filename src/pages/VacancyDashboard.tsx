@@ -99,12 +99,15 @@ export function VacancyDashboard() {
 
       const result = await response.json();
 
+      let candidatesData: ApiCandidate[] = [];
       if (Array.isArray(result)) {
-        const candidatesData = result[0]?.data || [];
-        setCandidates(candidatesData);
+        candidatesData = result[0]?.data || [];
       } else if (result.data) {
-        setCandidates(result.data);
+        candidatesData = result.data;
       }
+
+      const validCandidates = candidatesData.filter(c => c.id && c.email);
+      setCandidates(validCandidates);
 
       const vacancyResponse = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies', {
         method: 'POST',
