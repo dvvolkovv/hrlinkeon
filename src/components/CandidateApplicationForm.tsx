@@ -37,7 +37,7 @@ export function CandidateApplicationForm({
         return;
       }
       if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)) {
-        setError('Поддерживаются только PDF и DOC/DOCX файлы');
+        setError('Поддерживаются только PDF и RTF/TXT/XML файлы');
         return;
       }
       setResumeFile(file);
