@@ -52,7 +52,7 @@ export function CandidateApplicationForm({
       const allowedExtensions = ['pdf', 'rtf', 'txt', 'xml'];
 
       if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension || '')) {
-        setError('Поддерживаются только PDF, RTF, TXT, XML файлы');
+        setError('Поддерживаются только PDF(рекомендуется), RTF, TXT, XML файлы');
         return;
       }
       setResumeFile(file);
