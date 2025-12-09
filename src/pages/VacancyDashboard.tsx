@@ -137,9 +137,36 @@ export function VacancyDashboard() {
 
   const updateCandidateStatus = async (candidateId: string, status: string) => {
     try {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-reject-candidate/api/vacancies/${vacancyId}/candidates/${candidateId}/update_status`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            status: status,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result[0]?.success) {
+        throw new Error(result[0]?.message || 'Failed to update status');
+      }
+
       await loadData();
     } catch (error) {
       console.error('Error updating status:', error);
+      alert('Не удалось обновить статус кандидата. Попробуйте еще раз.');
     }
   };
 
@@ -477,6 +504,32 @@ export function VacancyDashboard() {
                             className="whitespace-nowrap"
                           >
                             На интервью
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => updateCandidateStatus(candidate.id, 'accepted')}
+                            className="whitespace-nowrap bg-green-600 hover:bg-green-700"
+                          >
+                            Предложение
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openRejectModal(candidate)}
+                            className="whitespace-nowrap text-red-600 hover:bg-red-50 hover:border-red-300"
+                          >
+                            Отклонить
+                          </Button>
+                        </>
+                      )}
+                      {candidate.status === 'interviewed' && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => updateCandidateStatus(candidate.id, 'accepted')}
+                            className="whitespace-nowrap bg-green-600 hover:bg-green-700"
+                          >
+                            Предложение
                           </Button>
                           <Button
                             size="sm"
