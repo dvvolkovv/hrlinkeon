@@ -375,7 +375,7 @@ export function CreateVacancy() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Загрузить файл</h3>
                 <p className="text-gray-600">
-                  Загрузите готовое описание вакансии в формате PDF, RTF, XML или TXT
+                  Загрузите готовое описание вакансии в формате PDF(рекомендуется), RTF, XML или TXT
                 </p>
               </CardContent>
             </Card>
