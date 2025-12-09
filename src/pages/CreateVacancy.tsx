@@ -327,7 +327,7 @@ export function CreateVacancy() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Загрузить файл</h3>
                 <p className="text-gray-600">
-                  Загрузите готовое описание вакансии в формате PDF, DOCX или TXT
+                  Загрузите готовое описание вакансии в формате PDF, RTF, XML или TXT
                 </p>
               </CardContent>
             </Card>
@@ -409,7 +409,7 @@ export function CreateVacancy() {
                     <input
                       type="file"
                       id="file-upload"
-                      accept=".pdf,.doc,.docx,.txt"
+                      accept=".pdf,.rtf,.xml,.txt"
                       onChange={handleFileUpload}
                       className="hidden"
                     />
@@ -426,7 +426,7 @@ export function CreateVacancy() {
                               Нажмите для выбора файла
                             </p>
                             <p className="text-sm text-gray-500">
-                              Поддерживаемые форматы: PDF, DOC, DOCX, TXT
+                              Поддерживаемые форматы: PDF, RTF, XML, TXT
                             </p>
                           </>
                         )}
