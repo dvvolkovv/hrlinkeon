@@ -19,7 +19,11 @@ import {
   AlertTriangle,
   X,
   Sparkles,
-  Bookmark
+  Bookmark,
+  Edit,
+  Share2,
+  Check,
+  Trash2
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -53,6 +57,9 @@ export function VacancyDashboard() {
   const [rejectingCandidate, setRejectingCandidate] = useState<ApiCandidate | null>(null);
   const [rejectComment, setRejectComment] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
+  const [copiedVacancy, setCopiedVacancy] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingVacancy, setDeletingVacancy] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -230,6 +237,82 @@ export function VacancyDashboard() {
     }
   };
 
+  const handleShareVacancy = async () => {
+    if (!vacancy) return;
+
+    const url = `${window.location.origin}/vacancy/${vacancy.slug}`;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedVacancy(true);
+      setTimeout(() => {
+        setCopiedVacancy(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+    }
+  };
+
+  const handleOpenChat = () => {
+    if (!vacancyId) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    navigate(`/vacancy/${vacancyId}/chat`);
+  };
+
+  const openDeleteModal = () => {
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+  };
+
+  const handleDeleteVacancy = async () => {
+    if (!vacancy || !vacancyId) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setDeletingVacancy(true);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-delete-vacancy/api/vacancies/${vacancyId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to delete vacancy');
+      }
+
+      navigate('/recruiter');
+    } catch (error) {
+      console.error('Failed to delete vacancy:', error);
+      alert('Не удалось удалить вакансию. Попробуйте еще раз.');
+    } finally {
+      setDeletingVacancy(false);
+    }
+  };
+
   const statusColors: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info'> = {
     new: 'info',
     screening: 'warning',
@@ -283,6 +366,49 @@ export function VacancyDashboard() {
                 AI-советник по кандидатам
               </Button>
             )}
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/vacancy/${vacancyId}/edit`)}
+              className="gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              <span className="hidden sm:inline">Редактировать</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleOpenChat}
+              className="gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Чат с AI</span>
+            </Button>
+            {vacancy?.status === 'published' && (
+              <Button
+                variant="outline"
+                onClick={handleShareVacancy}
+                className="gap-2"
+              >
+                {copiedVacancy ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span className="hidden sm:inline">Скопировано</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Поделиться</span>
+                  </>
+                )}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={openDeleteModal}
+              className="gap-2 text-red-600 hover:bg-red-50 hover:border-red-300"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Удалить</span>
+            </Button>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {vacancy?.title || 'Управление кандидатами'}
@@ -617,6 +743,57 @@ export function VacancyDashboard() {
                   className="flex-1 bg-red-600 hover:bg-red-700"
                 >
                   {isRejecting ? 'Отклонение...' : 'Отклонить кандидата'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showDeleteModal && vacancy && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Удалить вакансию?</h3>
+                  </div>
+                </div>
+                <button
+                  onClick={closeDeleteModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={deletingVacancy}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Вы уверены, что хотите удалить вакансию <span className="font-semibold">{vacancy.title}</span>?
+              </p>
+              <p className="text-sm text-gray-500">
+                Это действие нельзя отменить. Все данные, связанные с этой вакансией, будут удалены.
+              </p>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={closeDeleteModal}
+                  disabled={deletingVacancy}
+                  className="flex-1"
+                >
+                  Отмена
+                </Button>
+                <Button
+                  onClick={handleDeleteVacancy}
+                  disabled={deletingVacancy}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  {deletingVacancy ? 'Удаление...' : 'Удалить'}
                 </Button>
               </div>
             </CardContent>
