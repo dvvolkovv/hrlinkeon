@@ -44,6 +44,7 @@ export function CreateVacancy() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [vacancyUrl, setVacancyUrl] = useState('');
   const [currentVacancyId, setCurrentVacancyId] = useState<string | null>(null);
+  const [previousMode, setPreviousMode] = useState<'upload' | 'link'>('upload');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +139,7 @@ export function CreateVacancy() {
       setCurrentVacancyId(vacancyId);
       localStorage.setItem('current_vacancy_id', vacancyId);
 
+      setPreviousMode('upload');
       await loadVacancyData(vacancyId, userId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке файла');
@@ -292,7 +294,28 @@ export function CreateVacancy() {
       setCurrentVacancyId(vacancyId);
       localStorage.setItem('current_vacancy_id', vacancyId);
 
-      await loadVacancyData(vacancyId, userId);
+      const vacancyData = responseData.vacancy_data || {};
+
+      const levelValue = vacancyData.level?.toLowerCase();
+      const validLevel = ['junior', 'middle', 'senior', 'lead'].includes(levelValue)
+        ? levelValue
+        : 'middle';
+
+      setForm({
+        title: vacancyData.title || '',
+        department: vacancyData.department || '',
+        level: validLevel as 'junior' | 'middle' | 'senior' | 'lead',
+        experience_years: 0,
+        salary_min: vacancyData.salary_from ? String(vacancyData.salary_from) : '',
+        salary_max: vacancyData.salary_to ? String(vacancyData.salary_to) : '',
+        work_format: vacancyData.format || 'remote',
+        work_schedule: vacancyData.workload || 'full',
+        requirements: vacancyData.requirements || '',
+        responsibilities: vacancyData.responsibilities || '',
+      });
+
+      setPreviousMode('link');
+      setMode('review');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке вакансии');
     } finally {
@@ -616,7 +639,7 @@ export function CreateVacancy() {
                     type="button"
                     variant="outline"
                     disabled={loading}
-                    onClick={() => setMode('upload')}
+                    onClick={() => setMode(previousMode)}
                   >
                     Назад
                   </Button>
