@@ -256,27 +256,43 @@ export function CreateVacancy() {
     setError(null);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        setError('Пользователь не авторизован');
+        navigate('/login');
+        return;
+      }
 
-      const slug = 'linked-vacancy-' + Date.now();
+      const response = await fetch(
+        'https://nomira-ai-test.up.railway.app/webhook/vacancy/urlscan',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            url: vacancyUrl.trim(),
+            user_id: userId,
+          }),
+        }
+      );
 
-      const vacancy = mockStorage.createVacancy({
-        hr_user_id: null,
-        title: 'Вакансия из ссылки',
-        department: 'Не указан',
-        level: 'middle',
-        experience_years: 0,
-        salary_min: null,
-        salary_max: null,
-        work_format: 'remote',
-        work_schedule: 'full',
-        requirements: `Импортировано из: ${vacancyUrl}`,
-        responsibilities: `Импортировано из: ${vacancyUrl}`,
-        slug,
-        status: 'draft',
-      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Ошибка при импорте вакансии');
+      }
 
-      navigate(`/vacancy/${vacancy.id}/profiling`);
+      const responseData = await response.json();
+
+      if (!responseData.id) {
+        throw new Error('Некорректный формат ответа от сервера');
+      }
+
+      const vacancyId = responseData.id;
+      setCurrentVacancyId(vacancyId);
+      localStorage.setItem('current_vacancy_id', vacancyId);
+
+      await loadVacancyData(vacancyId, userId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке вакансии');
     } finally {
@@ -636,33 +652,56 @@ export function CreateVacancy() {
                   </div>
                 )}
 
-                <div>
-                  <Input
-                    label="Ссылка на вакансию"
-                    type="url"
-                    value={vacancyUrl}
-                    onChange={(e) => setVacancyUrl(e.target.value)}
-                    placeholder="https://hh.ru/vacancy/12345678"
-                    required
-                  />
-                  <p className="mt-2 text-sm text-gray-500">
-                    Поддерживаются ссылки с HeadHunter
-                  </p>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0">
-                      <LinkIcon className="w-5 h-5 text-blue-600 mt-0.5" />
-                    </div>
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium mb-1">Как это работает?</p>
-                      <p className="text-blue-700">
-                        Мы автоматически извлечем информацию о вакансии по ссылке и заполним профиль
-                      </p>
+                {loading && (
+                  <div className="p-8 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-medium text-gray-900 mb-1">
+                          Импортируем вакансию...
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Извлекаем данные из ссылки
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {!loading && (
+                  <>
+                    <div>
+                      <Input
+                        label="Ссылка на вакансию"
+                        type="url"
+                        value={vacancyUrl}
+                        onChange={(e) => setVacancyUrl(e.target.value)}
+                        placeholder="https://hh.ru/vacancy/12345678"
+                        required
+                      />
+                      <p className="mt-2 text-sm text-gray-500">
+                        Поддерживаются ссылки с HeadHunter
+                      </p>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0">
+                          <LinkIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+                        </div>
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium mb-1">Как это работает?</p>
+                          <p className="text-blue-700">
+                            Мы автоматически извлечем информацию о вакансии по ссылке и заполним профиль
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="flex gap-4">
                   <Button type="submit" disabled={loading || !vacancyUrl.trim()} className="flex-1">
