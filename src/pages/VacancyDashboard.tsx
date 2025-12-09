@@ -24,7 +24,9 @@ import {
   Share2,
   Check,
   Trash2,
-  Send
+  Send,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -62,6 +64,7 @@ export function VacancyDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingVacancy, setDeletingVacancy] = useState(false);
   const [publishingVacancy, setPublishingVacancy] = useState(false);
+  const [updatingVacancyStatus, setUpdatingVacancyStatus] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -344,6 +347,47 @@ export function VacancyDashboard() {
     }
   };
 
+  const handleUpdateVacancyStatus = async (newStatus: 'published' | 'closed') => {
+    if (!vacancyId) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setUpdatingVacancyStatus(true);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            status: newStatus,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to update vacancy status');
+      }
+
+      await loadData();
+    } catch (error) {
+      console.error('Failed to update vacancy status:', error);
+      alert('Не удалось изменить статус вакансии');
+    } finally {
+      setUpdatingVacancyStatus(false);
+    }
+  };
+
   const statusColors: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info'> = {
     new: 'info',
     screening: 'warning',
@@ -427,22 +471,48 @@ export function VacancyDashboard() {
               </Button>
             )}
             {vacancy?.status === 'published' && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleShareVacancy}
+                  className="gap-2"
+                >
+                  {copiedVacancy ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span className="hidden sm:inline">Скопировано</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Поделиться</span>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleUpdateVacancyStatus('closed')}
+                  disabled={updatingVacancyStatus}
+                  className="gap-2 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span className="hidden sm:inline">
+                    {updatingVacancyStatus ? 'Закрытие...' : 'Закрыть вакансию'}
+                  </span>
+                </Button>
+              </>
+            )}
+            {vacancy?.status === 'closed' && (
               <Button
                 variant="outline"
-                onClick={handleShareVacancy}
-                className="gap-2"
+                onClick={() => handleUpdateVacancyStatus('published')}
+                disabled={updatingVacancyStatus}
+                className="gap-2 text-green-600 hover:bg-green-50 hover:border-green-300"
               >
-                {copiedVacancy ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    <span className="hidden sm:inline">Скопировано</span>
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Поделиться</span>
-                  </>
-                )}
+                <Unlock className="w-4 h-4" />
+                <span className="hidden sm:inline">
+                  {updatingVacancyStatus ? 'Открытие...' : 'Открыть вакансию'}
+                </span>
               </Button>
             )}
             <Button
