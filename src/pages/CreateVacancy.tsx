@@ -646,7 +646,7 @@ export function CreateVacancy() {
                     required
                   />
                   <p className="mt-2 text-sm text-gray-500">
-                    Поддерживаются ссылку с HeadHunter
+                    Поддерживаются ссылки с HeadHunter
                   </p>
                 </div>
 
