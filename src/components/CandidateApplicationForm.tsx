@@ -223,7 +223,7 @@ export function CandidateApplicationForm({
                     <span className="text-sm font-medium text-gray-700">
                       Нажмите для загрузки резюме
                     </span>
-                    <span className="text-xs text-gray-500">PDF, RTF, TXT, XML до 10 МБ</span>
+                    <span className="text-xs text-gray-500">PDF(рекомендуется), RTF, TXT, XML до 10 МБ</span>
                   </>
                 )}
               </label>
