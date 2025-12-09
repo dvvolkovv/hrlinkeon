@@ -624,7 +624,7 @@ export function CreateVacancy() {
               </div>
               <h1 className="text-3xl font-bold text-gray-900">Импорт по ссылке</h1>
             </div>
-            <p className="text-gray-600">Вставьте ссылку на вакансию с HeadHunter, SuperJob или другого сайта</p>
+            <p className="text-gray-600">Вставьте ссылку на вакансию с HeadHunter</p>
           </div>
 
           <Card>
