@@ -29,6 +29,7 @@ import {
   Languages,
   X,
   Calendar,
+  Bookmark,
 } from 'lucide-react';
 
 interface ApiCandidate {
@@ -430,6 +431,14 @@ export function CandidateDetails() {
                       >
                         <CheckCircle className="w-4 h-4" />
                         Предложение
+                      </Button>
+                      <Button
+                        onClick={() => updateCandidateStatus('reserve')}
+                        disabled={statusUpdating}
+                        className="gap-2 whitespace-nowrap bg-amber-600 hover:bg-amber-700"
+                      >
+                        <Bookmark className="w-4 h-4" />
+                        Резерв
                       </Button>
                       <Button
                         variant="outline"
