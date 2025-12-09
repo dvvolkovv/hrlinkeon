@@ -40,8 +40,7 @@ export function RecruiterDashboard() {
 
       const userId = localStorage.getItem('user_id');
       if (!userId) {
-        console.error('No user_id found in localStorage');
-        setLoading(false);
+        navigate('/login');
         return;
       }
 

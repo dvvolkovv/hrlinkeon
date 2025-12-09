@@ -28,8 +28,13 @@ export function VacancyCandidatesChat() {
   const sendInitialMessage = async () => {
     const userId = localStorage.getItem('user_id');
 
-    if (!userId || !vacancyId) {
-      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    if (!vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные вакансии');
       return;
     }
 
@@ -143,8 +148,13 @@ export function VacancyCandidatesChat() {
   const handleSendMessage = async (content: string) => {
     const userId = localStorage.getItem('user_id');
 
-    if (!userId || !vacancyId) {
-      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    if (!vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные вакансии');
       return;
     }
 

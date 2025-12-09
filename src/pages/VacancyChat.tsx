@@ -29,8 +29,13 @@ export function VacancyChat() {
     const userId = localStorage.getItem('user_id');
     const vacancyId = id;
 
-    if (!userId || !vacancyId) {
-      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    if (!vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные вакансии');
       return;
     }
 
@@ -146,8 +151,13 @@ export function VacancyChat() {
     const userId = localStorage.getItem('user_id');
     const vacancyId = id;
 
-    if (!userId || !vacancyId) {
-      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    if (!vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные вакансии');
       return;
     }
 

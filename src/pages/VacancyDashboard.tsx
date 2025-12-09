@@ -60,8 +60,13 @@ export function VacancyDashboard() {
   const loadData = async () => {
     try {
       const userId = localStorage.getItem('user_id');
-      if (!userId || !vacancyId) {
-        console.error('No user_id or vacancyId found');
+      if (!userId) {
+        navigate('/login');
+        return;
+      }
+
+      if (!vacancyId) {
+        console.error('No vacancyId found');
         setLoading(false);
         return;
       }

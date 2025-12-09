@@ -46,8 +46,13 @@ export function VacancyProfiling() {
     const userId = localStorage.getItem('user_id');
     const vacancyId = id || localStorage.getItem('current_vacancy_id');
 
-    if (!userId || !vacancyId) {
-      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    if (!vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные вакансии');
       return;
     }
 
@@ -192,8 +197,13 @@ export function VacancyProfiling() {
     const userId = localStorage.getItem('user_id');
     const vacancyId = id || localStorage.getItem('current_vacancy_id');
 
-    if (!userId || !vacancyId) {
-      addAssistantMessage('Ошибка: не удалось получить данные пользователя или вакансии');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    if (!vacancyId) {
+      addAssistantMessage('Ошибка: не удалось получить данные вакансии');
       return;
     }
 
