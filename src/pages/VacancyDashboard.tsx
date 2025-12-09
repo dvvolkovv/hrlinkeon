@@ -476,9 +476,7 @@ export function VacancyDashboard() {
                 className="gap-2 text-green-600 hover:bg-green-50 hover:border-green-300"
               >
                 <Unlock className="w-4 h-4" />
-                <span className="hidden sm:inline">
-                  {updatingVacancyStatus ? 'Открытие...' : 'Открыть вакансию'}
-                </span>
+                {updatingVacancyStatus ? 'Открытие...' : 'Открыть вакансию'}
               </Button>
             )}
             {vacancy && vacancy.status === 'published' && (
@@ -507,9 +505,7 @@ export function VacancyDashboard() {
                   className="gap-2 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
                 >
                   <Lock className="w-4 h-4" />
-                  <span className="hidden sm:inline">
-                    {updatingVacancyStatus ? 'Закрытие...' : 'Закрыть вакансию'}
-                  </span>
+                  {updatingVacancyStatus ? 'Закрытие...' : 'Закрыть вакансию'}
                 </Button>
               </>
             )}
@@ -520,9 +516,7 @@ export function VacancyDashboard() {
                 className="gap-2 bg-green-600 hover:bg-green-700"
               >
                 <Check className="w-4 h-4" />
-                <span className="hidden sm:inline">
-                  {publishingVacancy ? 'Публикация...' : 'Опубликовать'}
-                </span>
+                {publishingVacancy ? 'Публикация...' : 'Опубликовать'}
               </Button>
             )}
             <Button
@@ -538,7 +532,7 @@ export function VacancyDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">
               {vacancy?.title || 'Управление кандидатами'}
             </h1>
-            {vacancy?.status && (
+            {vacancy && (
               <Badge variant={
                 vacancy.status === 'published' ? 'success' :
                 vacancy.status === 'closed' ? 'error' :
@@ -546,7 +540,7 @@ export function VacancyDashboard() {
               }>
                 {vacancy.status === 'published' ? 'Опубликована' :
                  vacancy.status === 'closed' ? 'Закрыта' :
-                 `Черновик (${vacancy.status})`}
+                 vacancy.status ? `Черновик (${vacancy.status})` : 'Черновик (без статуса)'}
               </Badge>
             )}
           </div>
