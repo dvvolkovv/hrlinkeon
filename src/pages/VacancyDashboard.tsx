@@ -63,6 +63,7 @@ export function VacancyDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingVacancy, setDeletingVacancy] = useState(false);
   const [updatingVacancyStatus, setUpdatingVacancyStatus] = useState(false);
+  const [publishingVacancy, setPublishingVacancy] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -357,6 +358,47 @@ export function VacancyDashboard() {
     }
   };
 
+  const handlePublishVacancy = async () => {
+    if (!vacancyId) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setPublishingVacancy(true);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            status: 'published',
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to publish vacancy');
+      }
+
+      await loadData();
+    } catch (error) {
+      console.error('Failed to publish vacancy:', error);
+      alert('Не удалось опубликовать вакансию');
+    } finally {
+      setPublishingVacancy(false);
+    }
+  };
+
   const statusColors: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info'> = {
     new: 'info',
     screening: 'warning',
@@ -426,6 +468,18 @@ export function VacancyDashboard() {
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Чат с AI</span>
             </Button>
+            {vacancy?.status !== 'published' && vacancy?.status !== 'closed' && (
+              <Button
+                onClick={handlePublishVacancy}
+                disabled={publishingVacancy}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Check className="w-4 h-4" />
+                <span className="hidden sm:inline">
+                  {publishingVacancy ? 'Публикация...' : 'Опубликовать'}
+                </span>
+              </Button>
+            )}
             {vacancy?.status === 'published' && (
               <>
                 <Button
