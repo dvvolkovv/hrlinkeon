@@ -261,15 +261,14 @@ export function RecruiterDashboard() {
       setPublishingVacancyId(vacancyId);
 
       const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`,
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-vacancy-publish/api/vacancies/${vacancyId}/publish`,
         {
-          method: 'PATCH',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             user_id: userId,
-            status: 'published',
           }),
         }
       );
