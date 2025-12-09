@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
-import { Upload, FileText, CheckCircle } from 'lucide-react';
+import { Upload, FileText, CheckCircle, Link as LinkIcon } from 'lucide-react';
 
 interface CandidateApplicationFormProps {
   vacancyId: string;
@@ -11,6 +11,8 @@ interface CandidateApplicationFormProps {
   onCancel: () => void;
   onRejected?: (message: string, details?: { explanation?: string }) => void;
 }
+
+type ResumeType = 'file' | 'link';
 
 export function CandidateApplicationForm({
   vacancyId,
@@ -24,7 +26,9 @@ export function CandidateApplicationForm({
   const [phone, setPhone] = useState('');
   const [githubLink, setGithubLink] = useState('');
   const [portfolioLink, setPortfolioLink] = useState('');
+  const [resumeType, setResumeType] = useState<ResumeType>('file');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeLink, setResumeLink] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -36,8 +40,21 @@ export function CandidateApplicationForm({
         setError('Размер файла не должен превышать 10 МБ');
         return;
       }
-      if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)) {
-        setError('Поддерживаются только PDF и RTF/TXT/XML файлы');
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/rtf',
+        'text/rtf',
+        'text/plain',
+        'text/xml',
+        'application/xml',
+      ];
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const allowedExtensions = ['pdf', 'doc', 'docx', 'rtf', 'txt', 'xml'];
+
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension || '')) {
+        setError('Поддерживаются только PDF, DOC, DOCX, RTF, TXT, XML файлы');
         return;
       }
       setResumeFile(file);
@@ -51,8 +68,14 @@ export function CandidateApplicationForm({
     setError(null);
     setUploadProgress(0);
 
-    if (!resumeFile) {
+    if (resumeType === 'file' && !resumeFile) {
       setError('Пожалуйста, загрузите резюме');
+      setLoading(false);
+      return;
+    }
+
+    if (resumeType === 'link' && !resumeLink.trim()) {
+      setError('Пожалуйста, укажите ссылку на резюме');
       setLoading(false);
       return;
     }
@@ -64,7 +87,12 @@ export function CandidateApplicationForm({
       if (phone) formData.append('phone', phone);
       if (githubLink) formData.append('github_link', githubLink);
       if (portfolioLink) formData.append('portfolio_link', portfolioLink);
-      formData.append('resume', resumeFile);
+
+      if (resumeType === 'file' && resumeFile) {
+        formData.append('resume', resumeFile);
+      } else if (resumeType === 'link' && resumeLink) {
+        formData.append('link', resumeLink);
+      }
 
       setUploadProgress(30);
 
@@ -169,38 +197,88 @@ export function CandidateApplicationForm({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Резюме <span className="text-red-500">*</span>
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-forest-500 transition-colors duration-200">
-              <input
-                type="file"
-                accept=".pdf,.rtf,.xml,.txt"
-                onChange={handleFileChange}
-                className="hidden"
-                id="resume-upload"
+
+            <div className="flex gap-4 mb-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setResumeType('file');
+                  setResumeLink('');
+                  setError(null);
+                }}
+                className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-center gap-2 ${
+                  resumeType === 'file'
+                    ? 'border-forest-500 bg-forest-50 text-forest-700'
+                    : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                }`}
                 disabled={loading}
-              />
-              <label
-                htmlFor="resume-upload"
-                className="cursor-pointer flex flex-col items-center gap-2"
               >
-                {resumeFile ? (
-                  <>
-                    <FileText className="w-12 h-12 text-forest-600" />
-                    <span className="text-sm font-medium text-gray-900">{resumeFile.name}</span>
-                    <span className="text-xs text-gray-500">
-                      {(resumeFile.size / 1024 / 1024).toFixed(2)} МБ
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-12 h-12 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">
-                      Нажмите для загрузки резюме
-                    </span>
-                    <span className="text-xs text-gray-500">PDF, RTF, XML, TXT до 10 МБ</span>
-                  </>
-                )}
-              </label>
+                <Upload className="w-5 h-5" />
+                <span className="font-medium">Загрузить файл</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setResumeType('link');
+                  setResumeFile(null);
+                  setError(null);
+                }}
+                className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-center gap-2 ${
+                  resumeType === 'link'
+                    ? 'border-forest-500 bg-forest-50 text-forest-700'
+                    : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                }`}
+                disabled={loading}
+              >
+                <LinkIcon className="w-5 h-5" />
+                <span className="font-medium">Ссылка на HeadHunter</span>
+              </button>
             </div>
+
+            {resumeType === 'file' ? (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-forest-500 transition-colors duration-200">
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.rtf,.xml,.txt"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="resume-upload"
+                  disabled={loading}
+                />
+                <label
+                  htmlFor="resume-upload"
+                  className="cursor-pointer flex flex-col items-center gap-2"
+                >
+                  {resumeFile ? (
+                    <>
+                      <FileText className="w-12 h-12 text-forest-600" />
+                      <span className="text-sm font-medium text-gray-900">{resumeFile.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {(resumeFile.size / 1024 / 1024).toFixed(2)} МБ
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-12 h-12 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-700">
+                        Нажмите для загрузки резюме
+                      </span>
+                      <span className="text-xs text-gray-500">PDF, DOC, DOCX, RTF, TXT, XML до 10 МБ</span>
+                    </>
+                  )}
+                </label>
+              </div>
+            ) : (
+              <Input
+                type="url"
+                value={resumeLink}
+                onChange={(e) => setResumeLink(e.target.value)}
+                placeholder="https://novosibirsk.hh.ru/resume/..."
+                disabled={loading}
+                required={resumeType === 'link'}
+              />
+            )}
 
             {uploadProgress > 0 && uploadProgress < 100 && (
               <div className="mt-3">
