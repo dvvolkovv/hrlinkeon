@@ -18,7 +18,8 @@ import {
   Users2,
   AlertTriangle,
   X,
-  Sparkles
+  Sparkles,
+  Bookmark
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -514,6 +515,14 @@ export function VacancyDashboard() {
                           </Button>
                           <Button
                             size="sm"
+                            onClick={() => updateCandidateStatus(candidate.id, 'reserve')}
+                            className="whitespace-nowrap bg-amber-600 hover:bg-amber-700"
+                          >
+                            <Bookmark className="w-4 h-4" />
+                            Резерв
+                          </Button>
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={() => openRejectModal(candidate)}
                             className="whitespace-nowrap text-red-600 hover:bg-red-50 hover:border-red-300"
@@ -530,6 +539,14 @@ export function VacancyDashboard() {
                             className="whitespace-nowrap bg-green-600 hover:bg-green-700"
                           >
                             Предложение
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => updateCandidateStatus(candidate.id, 'reserve')}
+                            className="whitespace-nowrap bg-amber-600 hover:bg-amber-700"
+                          >
+                            <Bookmark className="w-4 h-4" />
+                            Резерв
                           </Button>
                           <Button
                             size="sm"
