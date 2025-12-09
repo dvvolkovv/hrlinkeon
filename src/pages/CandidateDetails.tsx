@@ -213,7 +213,7 @@ export function CandidateDetails() {
       }
 
       const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-candidate-status/api/vacancies/${data.vacancy.id}/candidates/${candidateId}/status`,
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-reject-candidate/api/vacancies/${data.vacancy.id}/candidates/${candidateId}/update_status`,
         {
           method: 'POST',
           headers: {
@@ -226,19 +226,16 @@ export function CandidateDetails() {
         }
       );
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          await loadCandidateData();
-        } else {
-          alert('Ошибка при обновлении статуса');
-        }
-      } else {
-        alert('Ошибка при обновлении статуса');
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to update status');
       }
+
+      await loadCandidateData();
     } catch (error) {
       console.error('Error updating candidate status:', error);
-      alert('Ошибка при обновлении статуса');
+      alert('Не удалось обновить статус кандидата. Попробуйте еще раз.');
     } finally {
       setStatusUpdating(false);
     }
@@ -414,15 +411,25 @@ export function CandidateDetails() {
                       )}
                     </div>
                   </div>
-                  {candidate.status !== 'rejected' && candidate.status !== 'interviewed' && (
+                  {candidate.status !== 'rejected' && candidate.status !== 'accepted' && (
                     <div className="flex flex-col gap-2">
+                      {candidate.status !== 'interviewed' && (
+                        <Button
+                          onClick={() => updateCandidateStatus('interviewed')}
+                          disabled={statusUpdating}
+                          className="gap-2 whitespace-nowrap"
+                        >
+                          <Calendar className="w-4 h-4" />
+                          На интервью
+                        </Button>
+                      )}
                       <Button
-                        onClick={() => updateCandidateStatus('interviewed')}
+                        onClick={() => updateCandidateStatus('accepted')}
                         disabled={statusUpdating}
-                        className="gap-2 whitespace-nowrap"
+                        className="gap-2 whitespace-nowrap bg-green-600 hover:bg-green-700"
                       >
-                        <Calendar className="w-4 h-4" />
-                        На интервью
+                        <CheckCircle className="w-4 h-4" />
+                        Предложение
                       </Button>
                       <Button
                         variant="outline"
