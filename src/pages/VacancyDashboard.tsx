@@ -24,7 +24,6 @@ import {
   Share2,
   Check,
   Trash2,
-  Send,
   Lock,
   Unlock
 } from 'lucide-react';
@@ -63,7 +62,6 @@ export function VacancyDashboard() {
   const [copiedVacancy, setCopiedVacancy] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingVacancy, setDeletingVacancy] = useState(false);
-  const [publishingVacancy, setPublishingVacancy] = useState(false);
   const [updatingVacancyStatus, setUpdatingVacancyStatus] = useState(false);
 
   useEffect(() => {
@@ -318,35 +316,6 @@ export function VacancyDashboard() {
     }
   };
 
-  const handlePublishVacancy = async () => {
-    if (!vacancyId) return;
-
-    try {
-      setPublishingVacancy(true);
-
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-vacancy-publish/api/vacancies/${vacancyId}/publish`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to publish vacancy');
-      }
-
-      await loadData();
-    } catch (error) {
-      console.error('Failed to publish vacancy:', error);
-      alert('Не удалось опубликовать вакансию');
-    } finally {
-      setPublishingVacancy(false);
-    }
-  };
-
   const handleUpdateVacancyStatus = async (newStatus: 'published' | 'closed') => {
     if (!vacancyId) return;
 
@@ -457,19 +426,6 @@ export function VacancyDashboard() {
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Чат с AI</span>
             </Button>
-            {vacancy?.status !== 'published' && (
-              <Button
-                variant="default"
-                onClick={handlePublishVacancy}
-                disabled={publishingVacancy}
-                className="gap-2"
-              >
-                <Send className="w-4 h-4" />
-                <span className="hidden sm:inline">
-                  {publishingVacancy ? 'Публикация...' : 'Опубликовать'}
-                </span>
-              </Button>
-            )}
             {vacancy?.status === 'published' && (
               <>
                 <Button

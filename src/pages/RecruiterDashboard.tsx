@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Briefcase, Users, TrendingUp, Clock, CheckCircle, XCircle, UserCheck, Eye, Plus, BarChart3, Share2, Check, Coins, LogOut, CreditCard as Edit, Send, MessageSquare, Trash2, AlertTriangle } from 'lucide-react';
+import { Briefcase, Users, TrendingUp, Clock, CheckCircle, XCircle, UserCheck, Eye, Plus, BarChart3, Share2, Check, Coins, LogOut, CreditCard as Edit, MessageSquare, Trash2, AlertTriangle, Lock, Unlock } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
 interface VacancyStats {
@@ -23,10 +23,10 @@ export function RecruiterDashboard() {
   const [loading, setLoading] = useState(true);
   const [copiedVacancyId, setCopiedVacancyId] = useState<string | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number>(0);
-  const [publishingVacancyId, setPublishingVacancyId] = useState<string | null>(null);
   const [deletingVacancyId, setDeletingVacancyId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [vacancyToDelete, setVacancyToDelete] = useState<Vacancy | null>(null);
+  const [updatingVacancyId, setUpdatingVacancyId] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -149,33 +149,6 @@ export function RecruiterDashboard() {
     }
   };
 
-  const handlePublishVacancy = async (vacancyId: string) => {
-    try {
-      setPublishingVacancyId(vacancyId);
-
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-vacancy-publish/api/vacancies/${vacancyId}/publish`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to publish vacancy');
-      }
-
-      await loadDashboardData();
-    } catch (error) {
-      console.error('Failed to publish vacancy:', error);
-      alert('Не удалось опубликовать вакансию');
-    } finally {
-      setPublishingVacancyId(null);
-    }
-  };
-
   const handleOpenChat = (vacancyId: string) => {
     const userId = localStorage.getItem('user_id');
     if (!userId) {
@@ -234,6 +207,45 @@ export function RecruiterDashboard() {
       alert('Не удалось удалить вакансию. Попробуйте еще раз.');
     } finally {
       setDeletingVacancyId(null);
+    }
+  };
+
+  const handleUpdateVacancyStatus = async (vacancyId: string, newStatus: 'published' | 'closed') => {
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setUpdatingVacancyId(vacancyId);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            status: newStatus,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to update vacancy status');
+      }
+
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Failed to update vacancy status:', error);
+      alert('Не удалось изменить статус вакансии');
+    } finally {
+      setUpdatingVacancyId(null);
     }
   };
 
@@ -393,8 +405,14 @@ export function RecruiterDashboard() {
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3 mb-2">
                       <h3 className="text-xl font-bold text-gray-900">{vacancy.title}</h3>
-                      <Badge variant={vacancy.status === 'published' ? 'success' : 'warning'}>
-                        {vacancy.status === 'published' ? 'Опубликована' : 'Черновик'}
+                      <Badge variant={
+                        vacancy.status === 'published' ? 'success' :
+                        vacancy.status === 'closed' ? 'error' :
+                        'warning'
+                      }>
+                        {vacancy.status === 'published' ? 'Опубликована' :
+                         vacancy.status === 'closed' ? 'Закрыта' :
+                         'Черновик'}
                       </Badge>
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-gray-600">
@@ -429,38 +447,52 @@ export function RecruiterDashboard() {
                       <MessageSquare className="w-4 h-4" />
                       <span className="hidden sm:inline">Чат с AI</span>
                     </Button>
-                    {vacancy.status !== 'published' && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => handlePublishVacancy(vacancy.id)}
-                        disabled={publishingVacancyId === vacancy.id}
-                      >
-                        <Send className="w-4 h-4" />
-                        <span className="hidden sm:inline">
-                          {publishingVacancyId === vacancy.id ? 'Публикация...' : 'Опубликовать'}
-                        </span>
-                      </Button>
-                    )}
                     {vacancy.status === 'published' && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => handleShareVacancy(vacancy)}
+                        >
+                          {copiedVacancyId === vacancy.id ? (
+                            <>
+                              <Check className="w-4 h-4" />
+                              <span className="hidden sm:inline">Скопировано</span>
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="w-4 h-4" />
+                              <span className="hidden sm:inline">Поделиться</span>
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+                          onClick={() => handleUpdateVacancyStatus(vacancy.id, 'closed')}
+                          disabled={updatingVacancyId === vacancy.id}
+                        >
+                          <Lock className="w-4 h-4" />
+                          <span className="hidden sm:inline">
+                            {updatingVacancyId === vacancy.id ? 'Закрытие...' : 'Закрыть'}
+                          </span>
+                        </Button>
+                      </>
+                    )}
+                    {vacancy.status === 'closed' && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="gap-2"
-                        onClick={() => handleShareVacancy(vacancy)}
+                        className="gap-2 text-green-600 hover:bg-green-50 hover:border-green-300"
+                        onClick={() => handleUpdateVacancyStatus(vacancy.id, 'published')}
+                        disabled={updatingVacancyId === vacancy.id}
                       >
-                        {copiedVacancyId === vacancy.id ? (
-                          <>
-                            <Check className="w-4 h-4" />
-                            <span className="hidden sm:inline">Скопировано</span>
-                          </>
-                        ) : (
-                          <>
-                            <Share2 className="w-4 h-4" />
-                            <span className="hidden sm:inline">Поделиться</span>
-                          </>
-                        )}
+                        <Unlock className="w-4 h-4" />
+                        <span className="hidden sm:inline">
+                          {updatingVacancyId === vacancy.id ? 'Открытие...' : 'Открыть'}
+                        </span>
                       </Button>
                     )}
                     <Link to={`/vacancy/${vacancy.id}/dashboard`}>
