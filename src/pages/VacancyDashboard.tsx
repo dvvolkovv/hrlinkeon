@@ -468,19 +468,20 @@ export function VacancyDashboard() {
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Чат с AI</span>
             </Button>
-            {vacancy?.status !== 'published' && vacancy?.status !== 'closed' && (
+            {vacancy && vacancy.status === 'closed' && (
               <Button
-                onClick={handlePublishVacancy}
-                disabled={publishingVacancy}
-                className="gap-2 bg-green-600 hover:bg-green-700"
+                variant="outline"
+                onClick={() => handleUpdateVacancyStatus('published')}
+                disabled={updatingVacancyStatus}
+                className="gap-2 text-green-600 hover:bg-green-50 hover:border-green-300"
               >
-                <Check className="w-4 h-4" />
+                <Unlock className="w-4 h-4" />
                 <span className="hidden sm:inline">
-                  {publishingVacancy ? 'Публикация...' : 'Опубликовать'}
+                  {updatingVacancyStatus ? 'Открытие...' : 'Открыть вакансию'}
                 </span>
               </Button>
             )}
-            {vacancy?.status === 'published' && (
+            {vacancy && vacancy.status === 'published' && (
               <>
                 <Button
                   variant="outline"
@@ -512,16 +513,15 @@ export function VacancyDashboard() {
                 </Button>
               </>
             )}
-            {vacancy?.status === 'closed' && (
+            {vacancy && vacancy.status !== 'published' && vacancy.status !== 'closed' && (
               <Button
-                variant="outline"
-                onClick={() => handleUpdateVacancyStatus('published')}
-                disabled={updatingVacancyStatus}
-                className="gap-2 text-green-600 hover:bg-green-50 hover:border-green-300"
+                onClick={handlePublishVacancy}
+                disabled={publishingVacancy}
+                className="gap-2 bg-green-600 hover:bg-green-700"
               >
-                <Unlock className="w-4 h-4" />
+                <Check className="w-4 h-4" />
                 <span className="hidden sm:inline">
-                  {updatingVacancyStatus ? 'Открытие...' : 'Открыть вакансию'}
+                  {publishingVacancy ? 'Публикация...' : 'Опубликовать'}
                 </span>
               </Button>
             )}
@@ -534,9 +534,22 @@ export function VacancyDashboard() {
               <span className="hidden sm:inline">Удалить</span>
             </Button>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {vacancy?.title || 'Управление кандидатами'}
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              {vacancy?.title || 'Управление кандидатами'}
+            </h1>
+            {vacancy?.status && (
+              <Badge variant={
+                vacancy.status === 'published' ? 'success' :
+                vacancy.status === 'closed' ? 'error' :
+                'warning'
+              }>
+                {vacancy.status === 'published' ? 'Опубликована' :
+                 vacancy.status === 'closed' ? 'Закрыта' :
+                 `Черновик (${vacancy.status})`}
+              </Badge>
+            )}
+          </div>
           <p className="text-gray-600">{vacancy?.department}</p>
         </div>
 
