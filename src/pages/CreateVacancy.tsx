@@ -474,7 +474,7 @@ export function CreateVacancy() {
                               Нажмите для выбора файла
                             </p>
                             <p className="text-sm text-gray-500">
-                              Поддерживаемые форматы: PDF, RTF, XML, TXT
+                              Поддерживаемые форматы: PDF(рекомедуется), RTF, XML, TXT
                             </p>
                           </>
                         )}
