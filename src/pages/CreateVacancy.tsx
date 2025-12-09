@@ -646,7 +646,7 @@ export function CreateVacancy() {
                     required
                   />
                   <p className="mt-2 text-sm text-gray-500">
-                    Поддерживаются ссылки с HeadHunter, SuperJob, Avito и других популярных площадок
+                    Поддерживаются ссылку с HeadHunter
                   </p>
                 </div>
 
