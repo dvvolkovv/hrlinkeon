@@ -159,8 +159,8 @@ export function VacancyDashboard() {
 
       const result = await response.json();
 
-      if (!response.ok || !result[0]?.success) {
-        throw new Error(result[0]?.message || 'Failed to update status');
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to update status');
       }
 
       await loadData();
