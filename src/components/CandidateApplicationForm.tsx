@@ -198,87 +198,38 @@ export function CandidateApplicationForm({
               Резюме <span className="text-red-500">*</span>
             </label>
 
-            <div className="flex gap-4 mb-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setResumeType('file');
-                  setResumeLink('');
-                  setError(null);
-                }}
-                className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-center gap-2 ${
-                  resumeType === 'file'
-                    ? 'border-forest-500 bg-forest-50 text-forest-700'
-                    : 'border-gray-300 text-gray-600 hover:border-gray-400'
-                }`}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-forest-500 transition-colors duration-200">
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.rtf,.xml,.txt"
+                onChange={handleFileChange}
+                className="hidden"
+                id="resume-upload"
                 disabled={loading}
-              >
-                <Upload className="w-5 h-5" />
-                <span className="font-medium">Загрузить файл</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setResumeType('link');
-                  setResumeFile(null);
-                  setError(null);
-                }}
-                className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-center gap-2 ${
-                  resumeType === 'link'
-                    ? 'border-forest-500 bg-forest-50 text-forest-700'
-                    : 'border-gray-300 text-gray-600 hover:border-gray-400'
-                }`}
-                disabled={loading}
-              >
-                <LinkIcon className="w-5 h-5" />
-                <span className="font-medium">Ссылка на HeadHunter</span>
-              </button>
-            </div>
-
-            {resumeType === 'file' ? (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-forest-500 transition-colors duration-200">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,.rtf,.xml,.txt"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="resume-upload"
-                  disabled={loading}
-                />
-                <label
-                  htmlFor="resume-upload"
-                  className="cursor-pointer flex flex-col items-center gap-2"
-                >
-                  {resumeFile ? (
-                    <>
-                      <FileText className="w-12 h-12 text-forest-600" />
-                      <span className="text-sm font-medium text-gray-900">{resumeFile.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {(resumeFile.size / 1024 / 1024).toFixed(2)} МБ
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-12 h-12 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-700">
-                        Нажмите для загрузки резюме
-                      </span>
-                      <span className="text-xs text-gray-500">PDF, DOC, DOCX, RTF, TXT, XML до 10 МБ</span>
-                    </>
-                  )}
-                </label>
-              </div>
-            ) : (
-              <Input
-                type="url"
-                value={resumeLink}
-                onChange={(e) => setResumeLink(e.target.value)}
-                placeholder="https://novosibirsk.hh.ru/resume/..."
-                disabled={loading}
-                required={resumeType === 'link'}
               />
-            )}
+              <label
+                htmlFor="resume-upload"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                {resumeFile ? (
+                  <>
+                    <FileText className="w-12 h-12 text-forest-600" />
+                    <span className="text-sm font-medium text-gray-900">{resumeFile.name}</span>
+                    <span className="text-xs text-gray-500">
+                      {(resumeFile.size / 1024 / 1024).toFixed(2)} МБ
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-12 h-12 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">
+                      Нажмите для загрузки резюме
+                    </span>
+                    <span className="text-xs text-gray-500">PDF, DOC, DOCX, RTF, TXT, XML до 10 МБ</span>
+                  </>
+                )}
+              </label>
+            </div>
 
             {uploadProgress > 0 && uploadProgress < 100 && (
               <div className="mt-3">
