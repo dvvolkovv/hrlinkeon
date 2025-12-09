@@ -42,8 +42,6 @@ export function CandidateApplicationForm({
       }
       const allowedTypes = [
         'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/rtf',
         'text/rtf',
         'text/plain',
@@ -51,10 +49,10 @@ export function CandidateApplicationForm({
         'application/xml',
       ];
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
-      const allowedExtensions = ['pdf', 'doc', 'docx', 'rtf', 'txt', 'xml'];
+      const allowedExtensions = ['pdf', 'rtf', 'txt', 'xml'];
 
       if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension || '')) {
-        setError('Поддерживаются только PDF, DOC, DOCX, RTF, TXT, XML файлы');
+        setError('Поддерживаются только PDF, RTF, TXT, XML файлы');
         return;
       }
       setResumeFile(file);
@@ -201,7 +199,7 @@ export function CandidateApplicationForm({
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-forest-500 transition-colors duration-200">
               <input
                 type="file"
-                accept=".pdf,.doc,.docx,.rtf,.xml,.txt"
+                accept=".pdf,.rtf,.xml,.txt"
                 onChange={handleFileChange}
                 className="hidden"
                 id="resume-upload"
@@ -225,7 +223,7 @@ export function CandidateApplicationForm({
                     <span className="text-sm font-medium text-gray-700">
                       Нажмите для загрузки резюме
                     </span>
-                    <span className="text-xs text-gray-500">PDF, DOC, DOCX, RTF, TXT, XML до 10 МБ</span>
+                    <span className="text-xs text-gray-500">PDF, RTF, TXT, XML до 10 МБ</span>
                   </>
                 )}
               </label>
