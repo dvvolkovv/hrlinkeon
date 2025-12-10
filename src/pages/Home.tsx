@@ -39,12 +39,12 @@ export function Home() {
                 Кабинет рекрутера
               </Button>
             </Link>
-            <Link to="/vacancy/demo-frontend-developer-1234567890">
+            <a href="https://hr.linkeon.io/vacancy/121808" target="_blank" rel="noopener noreferrer">
               <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
                 <Users className="w-5 h-5" />
                 Демо: Откликнуться
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
 
