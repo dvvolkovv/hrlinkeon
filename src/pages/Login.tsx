@@ -111,8 +111,12 @@ export function Login() {
     <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-forest-500 to-forest-600 rounded-2xl mb-4 shadow-lg">
-            <Phone className="w-8 h-8 text-white" />
+          <div className="flex justify-center mb-4">
+            <img
+              src="/logo.jpg"
+              alt="HR-Linkeon"
+              className="w-24 h-24 rounded-2xl shadow-lg"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Вход в систему</h1>
           <p className="text-gray-600">Введите номер телефона для входа</p>

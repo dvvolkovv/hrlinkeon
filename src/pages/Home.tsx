@@ -8,6 +8,14 @@ export function Home() {
     <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50">
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-16">
+          <div className="flex justify-center mb-6">
+            <img
+              src="/logo.jpg"
+              alt="HR-Linkeon"
+              className="w-32 h-32 rounded-2xl shadow-lg"
+            />
+          </div>
+
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-forest-100 rounded-full mb-6">
             <Sparkles className="w-4 h-4 text-forest-700" />
             <span className="text-sm font-medium text-forest-700">
