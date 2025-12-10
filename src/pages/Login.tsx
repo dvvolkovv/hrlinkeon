@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Modal } from '../components/ui/Modal';
+import { DocumentContent } from '../components/DocumentContent';
 import { Phone, ArrowRight, Loader } from 'lucide-react';
 
 export function Login() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  const [openModal, setOpenModal] = useState<'privacy' | 'terms' | 'services' | null>(null);
   const navigate = useNavigate();
 
   const formatPhoneNumber = (value: string) => {
@@ -58,6 +62,11 @@ export function Login() {
 
     if (!validatePhone(phone)) {
       setError('Введите корректный номер телефона');
+      return;
+    }
+
+    if (!agreed) {
+      setError('Необходимо принять условия соглашений');
       return;
     }
 
@@ -131,15 +140,64 @@ export function Login() {
                     autoFocus
                   />
                 </div>
-                {error && (
-                  <p className="mt-2 text-sm text-red-600">{error}</p>
-                )}
               </div>
+
+              <div className="space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => {
+                      setAgreed(e.target.checked);
+                      setError('');
+                    }}
+                    className="mt-1 w-4 h-4 text-forest-600 border-gray-300 rounded focus:ring-forest-500 cursor-pointer"
+                    disabled={loading}
+                  />
+                  <span className="text-sm text-gray-700 leading-relaxed">
+                    Мне больше 18 лет, принимаю{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setOpenModal('terms');
+                      }}
+                      className="text-forest-600 hover:text-forest-700 underline font-medium"
+                    >
+                      Пользовательское соглашение
+                    </button>
+                    ,{' '}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setOpenModal('privacy');
+                      }}
+                      className="text-forest-600 hover:text-forest-700 underline font-medium"
+                    >
+                      Политику конфиденциальности
+                    </button>{' '}
+                    и даю согласие на обработку персональных данных
+                  </span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => setOpenModal('services')}
+                  className="text-sm text-forest-600 hover:text-forest-700 underline font-medium"
+                >
+                  Описание услуг и порядок оплаты
+                </button>
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-600">{error}</p>
+              )}
 
               <Button
                 type="submit"
                 className="w-full gap-2"
-                disabled={loading || !phone}
+                disabled={loading || !phone || !agreed}
               >
                 {loading ? (
                   <>
@@ -169,6 +227,30 @@ export function Login() {
           </p>
         </div>
       </div>
+
+      <Modal
+        isOpen={openModal === 'privacy'}
+        onClose={() => setOpenModal(null)}
+        title="Политика конфиденциальности"
+      >
+        <DocumentContent type="privacy" />
+      </Modal>
+
+      <Modal
+        isOpen={openModal === 'terms'}
+        onClose={() => setOpenModal(null)}
+        title="Пользовательское соглашение"
+      >
+        <DocumentContent type="terms" />
+      </Modal>
+
+      <Modal
+        isOpen={openModal === 'services'}
+        onClose={() => setOpenModal(null)}
+        title="Описание услуг и порядок оплаты"
+      >
+        <DocumentContent type="services" />
+      </Modal>
     </div>
   );
 }
