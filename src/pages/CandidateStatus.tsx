@@ -198,7 +198,7 @@ export function CandidateStatus() {
             variant="outline"
             onClick={() => navigate('/')}
           >
-            Посмотреть другие вакансии
+            Вернуться
           </Button>
         </div>
       );
@@ -256,7 +256,7 @@ export function CandidateStatus() {
             variant="outline"
             onClick={() => navigate('/')}
           >
-            Посмотреть другие вакансии
+            Вернуться
           </Button>
         </div>
       );
