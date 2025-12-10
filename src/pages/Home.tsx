@@ -155,6 +155,26 @@ export function Home() {
             </CardContent>
           </Card>
         </div>
+
+        <footer className="mt-16 pt-8 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-gray-600">
+            <span>© 2025 HR Linkeon</span>
+            <span className="hidden sm:block">•</span>
+            <Link
+              to="/privacy"
+              className="text-forest-600 hover:text-forest-700 transition-colors underline"
+            >
+              Политика конфиденциальности
+            </Link>
+            <span className="hidden sm:block">•</span>
+            <Link
+              to="/terms"
+              className="text-forest-600 hover:text-forest-700 transition-colors underline"
+            >
+              Пользовательское соглашение
+            </Link>
+          </div>
+        </footer>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { Card, CardHeader, CardContent } from './ui/Card';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { Upload, FileText, CheckCircle, Link as LinkIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface CandidateApplicationFormProps {
   vacancyId: string;
@@ -32,6 +33,8 @@ export function CandidateApplicationForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,6 +77,18 @@ export function CandidateApplicationForm({
 
     if (resumeType === 'link' && !resumeLink.trim()) {
       setError('Пожалуйста, укажите ссылку на резюме');
+      setLoading(false);
+      return;
+    }
+
+    if (!acceptPrivacy) {
+      setError('Необходимо согласиться с Политикой конфиденциальности');
+      setLoading(false);
+      return;
+    }
+
+    if (!acceptTerms) {
+      setError('Необходимо согласиться с Пользовательским соглашением');
       setLoading(false);
       return;
     }
@@ -251,8 +266,65 @@ export function CandidateApplicationForm({
             )}
           </div>
 
-          <div className="flex gap-4 pt-4">
-            <Button type="submit" disabled={loading} className="flex-1">
+          <div className="space-y-4 pt-4 border-t border-gray-200">
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={acceptPrivacy}
+                  onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-forest-600 border-gray-300 rounded focus:ring-forest-500 focus:ring-2 cursor-pointer"
+                  required
+                />
+                <span className="text-sm text-gray-700 select-none">
+                  Я согласен(на) с{' '}
+                  <Link
+                    to="/privacy"
+                    target="_blank"
+                    className="text-forest-600 hover:text-forest-700 underline font-medium"
+                  >
+                    Политикой конфиденциальности
+                  </Link>{' '}
+                  и даю согласие на обработку моих персональных данных, включая передачу работодателю
+                  <span className="text-red-500 ml-1">*</span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-forest-600 border-gray-300 rounded focus:ring-forest-500 focus:ring-2 cursor-pointer"
+                  required
+                />
+                <span className="text-sm text-gray-700 select-none">
+                  Я принимаю условия{' '}
+                  <Link
+                    to="/terms"
+                    target="_blank"
+                    className="text-forest-600 hover:text-forest-700 underline font-medium"
+                  >
+                    Пользовательского соглашения
+                  </Link>
+                  <span className="text-red-500 ml-1">*</span>
+                </span>
+              </label>
+            </div>
+
+            <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-200">
+              Подавая заявку, вы соглашаетесь на использование ИИ для анализа резюме и оценки
+              соответствия вакансии. Ваши данные будут переданы работодателю для рассмотрения
+              кандидатуры.
+            </p>
+          </div>
+
+          <div className="flex gap-4 pt-2">
+            <Button
+              type="submit"
+              disabled={loading || !acceptPrivacy || !acceptTerms}
+              className="flex-1"
+            >
               {loading ? 'Отправка...' : 'Продолжить к интервью'}
             </Button>
             <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
