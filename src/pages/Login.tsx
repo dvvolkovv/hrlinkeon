@@ -3,12 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Checkbox } from '../components/ui/Checkbox';
+import { Modal } from '../components/ui/Modal';
+import { LegalDocument } from '../components/LegalDocument';
 import { Phone, ArrowRight, Loader } from 'lucide-react';
+import { legalDocuments } from '../lib/legalDocuments';
+import { saveTermsAcceptance } from '../lib/supabase';
+
+type ModalType = 'policy' | 'terms' | 'consent' | 'service' | null;
 
 export function Login() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
   const navigate = useNavigate();
 
   const formatPhoneNumber = (value: string) => {
@@ -48,6 +58,20 @@ export function Login() {
     setError('');
   };
 
+  const handleTermsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTermsAccepted(e.target.checked);
+    setTermsError(false);
+  };
+
+  const openModal = (modalType: ModalType) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setActiveModal(modalType);
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+  };
+
   const validatePhone = (phone: string): boolean => {
     const cleaned = phone.replace(/\D/g, '');
     return cleaned.length === 11 && cleaned[0] === '7';
@@ -61,8 +85,15 @@ export function Login() {
       return;
     }
 
+    if (!termsAccepted) {
+      setTermsError(true);
+      setError('Необходимо принять условия соглашения');
+      return;
+    }
+
     setLoading(true);
     setError('');
+    setTermsError(false);
 
     try {
       const cleanPhone = '+' + phone.replace(/\D/g, '');
@@ -89,6 +120,13 @@ export function Login() {
       }
 
       console.log(`[SUCCESS] SMS код отправлен на ${cleanPhone}`);
+
+      try {
+        await saveTermsAcceptance(cleanPhone);
+        console.log(`[SUCCESS] Согласие сохранено для ${cleanPhone}`);
+      } catch (termsError) {
+        console.error('Failed to save terms acceptance:', termsError);
+      }
 
       navigate('/verify-code', { state: { phone: cleanPhone } });
     } catch (err) {
@@ -131,7 +169,51 @@ export function Login() {
                     autoFocus
                   />
                 </div>
-                {error && (
+                {error && !termsError && (
+                  <p className="mt-2 text-sm text-red-600">{error}</p>
+                )}
+              </div>
+
+              <div>
+                <Checkbox
+                  checked={termsAccepted}
+                  onChange={handleTermsChange}
+                  disabled={loading}
+                  error={termsError}
+                  label={
+                    <span>
+                      Я принимаю{' '}
+                      <button
+                        onClick={openModal('terms')}
+                        className="text-forest-600 hover:text-forest-700 underline font-medium"
+                      >
+                        Пользовательское соглашение
+                      </button>
+                      ,{' '}
+                      <button
+                        onClick={openModal('policy')}
+                        className="text-forest-600 hover:text-forest-700 underline font-medium"
+                      >
+                        Политику конфиденциальности
+                      </button>
+                      {' '}и даю{' '}
+                      <button
+                        onClick={openModal('consent')}
+                        className="text-forest-600 hover:text-forest-700 underline font-medium"
+                      >
+                        согласие на обработку персональных данных
+                      </button>
+                      , а также ознакомлен с{' '}
+                      <button
+                        onClick={openModal('service')}
+                        className="text-forest-600 hover:text-forest-700 underline font-medium"
+                      >
+                        Описанием услуг и порядком оплаты
+                      </button>
+                    </span>
+                  }
+                />
+                {termsError && (
                   <p className="mt-2 text-sm text-red-600">{error}</p>
                 )}
               </div>
@@ -139,7 +221,7 @@ export function Login() {
               <Button
                 type="submit"
                 className="w-full gap-2"
-                disabled={loading || !phone}
+                disabled={loading || !phone || !termsAccepted}
               >
                 {loading ? (
                   <>
@@ -169,6 +251,38 @@ export function Login() {
           </p>
         </div>
       </div>
+
+      <Modal
+        isOpen={activeModal === 'terms'}
+        onClose={closeModal}
+        title="Пользовательское соглашение"
+      >
+        <LegalDocument content={legalDocuments.userAgreement} />
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === 'policy'}
+        onClose={closeModal}
+        title="Политика конфиденциальности"
+      >
+        <LegalDocument content={legalDocuments.policy} />
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === 'consent'}
+        onClose={closeModal}
+        title="Согласие на обработку персональных данных"
+      >
+        <LegalDocument content={legalDocuments.consent} />
+      </Modal>
+
+      <Modal
+        isOpen={activeModal === 'service'}
+        onClose={closeModal}
+        title="Описание услуг и порядок оплаты"
+      >
+        <LegalDocument content={legalDocuments.serviceDescription} />
+      </Modal>
     </div>
   );
 }
