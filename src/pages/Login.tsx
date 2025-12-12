@@ -119,7 +119,7 @@ export function Login() {
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Вход в систему</h1>
-          <p className="text-gray-600">Введите номер телефона для входа</p>
+          <p className="text-gray-600">Введите номер телефона для получения кода</p>
         </div>
 
         <Card>
@@ -219,7 +219,7 @@ export function Login() {
 
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center">
-                Мы отправим вам SMS с кодом подтверждения для входа в систему
+                Код подтверждения будет отправлен в <strong>Telegram</strong> или через <strong>SMS</strong>
               </p>
             </div>
           </CardContent>
