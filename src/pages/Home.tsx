@@ -33,7 +33,7 @@ export function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/login">
+            <Link to="/recruiter">
               <Button size="lg" className="gap-2 w-full sm:w-auto">
                 <Briefcase className="w-5 h-5" />
                 Кабинет рекрутера
