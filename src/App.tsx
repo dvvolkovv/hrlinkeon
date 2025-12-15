@@ -18,6 +18,7 @@ import { CandidateDetails } from './pages/CandidateDetails';
 import { BuyTokens } from './pages/BuyTokens';
 import { Privacy } from './pages/Privacy';
 import { Terms } from './pages/Terms';
+import { OpenVacancies } from './pages/OpenVacancies';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/open-vacancies" element={<OpenVacancies />} />
         <Route path="/recruiter" element={<RecruiterDashboard />} />
         <Route path="/buy-tokens" element={<BuyTokens />} />
         <Route path="/create-vacancy" element={<CreateVacancy />} />

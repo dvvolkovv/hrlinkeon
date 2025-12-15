@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
-import { Sparkles, Target, Users, TrendingUp, CheckCircle, Briefcase } from 'lucide-react';
+import { Sparkles, Target, Users, TrendingUp, CheckCircle, Briefcase, FileText } from 'lucide-react';
 
 export function Home() {
   return (
@@ -37,6 +37,12 @@ export function Home() {
               <Button size="lg" className="gap-2 w-full sm:w-auto">
                 <Briefcase className="w-5 h-5" />
                 Кабинет рекрутера
+              </Button>
+            </Link>
+            <Link to="/open-vacancies">
+              <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
+                <FileText className="w-5 h-5" />
+                Открытые вакансии
               </Button>
             </Link>
             <a href="https://hr.linkeon.io/vacancy/121808" target="_blank" rel="noopener noreferrer">
