@@ -195,7 +195,7 @@ export function Home() {
               >
                 <Button
                   size="lg"
-                  className="gap-2 bg-white !text-forest-700 hover:bg-forest-50 active:bg-forest-700 active:!text-white shadow-lg transition-colors"
+                  className="gap-2 bg-white !text-forest-700 hover:bg-forest-700 hover:!text-white active:bg-forest-700 active:!text-white shadow-lg transition-colors"
                 >
                   <Calendar className="w-5 h-5" />
                   Выбрать удобное время для демо
