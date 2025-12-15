@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
-import { Sparkles, Target, Users, TrendingUp, CheckCircle, Briefcase, FileText } from 'lucide-react';
+import { Sparkles, Target, Users, TrendingUp, CheckCircle, Briefcase, FileText, Calendar } from 'lucide-react';
 
 export function Home() {
   return (
@@ -45,7 +45,21 @@ export function Home() {
                 Открытые вакансии
               </Button>
             </Link>
+            <a
+              href="https://cal.com/sergey-k-1f0sld"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto border-warm-500 text-warm-700 hover:bg-warm-50">
+                <Calendar className="w-5 h-5" />
+                Записаться на демо
+              </Button>
+            </a>
           </div>
+
+          <p className="text-sm text-gray-600 mt-4 max-w-xl mx-auto">
+            Мы проведем демо для вас. Выберите подходящий слот для встречи
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
@@ -160,6 +174,33 @@ export function Home() {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-16">
+          <Card className="bg-gradient-to-br from-warm-400 to-warm-500 border-0 text-white">
+            <CardContent className="py-12 text-center">
+              <h2 className="text-3xl font-bold mb-4">
+                Увидьте HR-Linkeon в действии
+              </h2>
+              <p className="text-lg text-warm-50 mb-8 max-w-2xl mx-auto">
+                Мы проведем персональное демо и покажем, как HR-Linkeon поможет вашей команде
+                находить идеальных кандидатов быстрее и эффективнее
+              </p>
+              <a
+                href="https://cal.com/sergey-k-1f0sld"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  size="lg"
+                  className="gap-2 bg-white text-warm-700 hover:bg-warm-50"
+                >
+                  <Calendar className="w-5 h-5" />
+                  Выбрать удобное время для демо
+                </Button>
+              </a>
             </CardContent>
           </Card>
         </div>
