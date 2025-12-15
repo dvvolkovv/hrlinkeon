@@ -45,12 +45,6 @@ export function Home() {
                 Открытые вакансии
               </Button>
             </Link>
-            <a href="https://hr.linkeon.io/vacancy/121808" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
-                <Users className="w-5 h-5" />
-                Демо: Откликнуться
-              </Button>
-            </a>
           </div>
         </div>
 
