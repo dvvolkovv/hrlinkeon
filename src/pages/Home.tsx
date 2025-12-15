@@ -179,12 +179,12 @@ export function Home() {
         </div>
 
         <div className="mt-16">
-          <Card className="bg-gradient-to-br from-warm-400 to-warm-500 border-0 text-white">
+          <Card className="bg-gradient-to-br from-forest-600 to-forest-700 border-0 text-white">
             <CardContent className="py-12 text-center">
               <h2 className="text-3xl font-bold mb-4">
                 Увидьте HR-Linkeon в действии
               </h2>
-              <p className="text-lg text-warm-50 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg text-forest-100 mb-8 max-w-2xl mx-auto leading-relaxed">
                 Мы проведем персональное демо и покажем, как HR-Linkeon поможет вашей команде
                 находить идеальных кандидатов быстрее и эффективнее
               </p>
@@ -195,7 +195,7 @@ export function Home() {
               >
                 <Button
                   size="lg"
-                  className="gap-2 bg-forest-600 text-white hover:bg-forest-700 shadow-lg"
+                  className="gap-2 bg-white text-forest-700 hover:bg-forest-50 shadow-lg"
                 >
                   <Calendar className="w-5 h-5" />
                   Выбрать удобное время для демо
