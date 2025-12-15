@@ -195,7 +195,7 @@ export function Home() {
               >
                 <Button
                   size="lg"
-                  className="gap-2 bg-white text-warm-700 hover:bg-warm-50"
+                  className="gap-2 bg-forest-600 text-white hover:bg-forest-700 shadow-lg"
                 >
                   <Calendar className="w-5 h-5" />
                   Выбрать удобное время для демо
