@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
-import { Sparkles, Target, Users, TrendingUp, CheckCircle, Briefcase, FileText, Calendar } from 'lucide-react';
+import { Sparkles, Target, Users, TrendingUp, CheckCircle, Briefcase, FileText, Calendar, Send } from 'lucide-react';
 
 export function Home() {
   return (
@@ -208,6 +208,16 @@ export function Home() {
         <footer className="mt-16 pt-8 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-gray-600">
             <span>© 2025 HR Linkeon</span>
+            <span className="hidden sm:block">•</span>
+            <a
+              href="https://t.me/ainomira"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-forest-600 hover:text-forest-700 transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              <span className="underline">Telegram канал</span>
+            </a>
             <span className="hidden sm:block">•</span>
             <Link
               to="/privacy"
