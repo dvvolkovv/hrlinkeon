@@ -414,12 +414,14 @@ export function CreateVacancy() {
       localStorage.setItem('current_vacancy_id', vacancyId);
 
       const vacancyData = responseData.vacancy_data || {};
+      const extendedData = responseData.extended_data?.vacancy || {};
 
       const levelMapping: Record<string, 'junior' | 'middle' | 'senior' | 'lead'> = {
         'младший': 'junior',
         'junior': 'junior',
         'средний': 'middle',
         'middle': 'middle',
+        'intermediate': 'middle',
         'старший': 'senior',
         'senior': 'senior',
         'ведущий': 'lead',
@@ -443,19 +445,27 @@ export function CreateVacancy() {
         description: vacancyData.description || '',
         benefits: vacancyData.benefits || '',
         experience: vacancyData.experience || '',
-        pitch: '',
-        values: '',
-        company_name: '',
-        company_mission: '',
-        company_culture: '',
-        company_values: '',
-        hard_skills: '',
-        soft_skills: '',
-        anti_profile: '',
-        role_goals: '',
-        role_impact: '',
-        hiring_stages: '',
-        motivation_drivers: '',
+        pitch: extendedData.pitch || '',
+        values: Array.isArray(extendedData.values) ? extendedData.values.join('\n') : '',
+        company_name: extendedData.company?.name || '',
+        company_mission: extendedData.company?.mission || '',
+        company_culture: extendedData.company?.culture || '',
+        company_values: Array.isArray(extendedData.company?.values) ? extendedData.company.values.join('\n') : '',
+        hard_skills: Array.isArray(extendedData.hard_skills) ? extendedData.hard_skills.join('\n') : '',
+        soft_skills: Array.isArray(extendedData.soft_skills) ? extendedData.soft_skills.join('\n') : '',
+        anti_profile: extendedData.anti_profile?.behavioral_red_flags
+          ? extendedData.anti_profile.behavioral_red_flags.join('\n')
+          : (extendedData.anti_profile?.avoid || ''),
+        role_goals: extendedData.role_context?.goals || '',
+        role_impact: extendedData.role_context?.impact || '',
+        hiring_stages: Array.isArray(extendedData.hiring_process?.stages)
+          ? extendedData.hiring_process.stages.join('\n')
+          : '',
+        motivation_drivers: extendedData.motivation_profile
+          ? Object.entries(extendedData.motivation_profile)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join('\n')
+          : '',
       });
 
       setPreviousMode('link');
