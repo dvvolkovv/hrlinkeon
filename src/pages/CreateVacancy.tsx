@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -77,6 +77,25 @@ export function CreateVacancy() {
   const [vacancyUrl, setVacancyUrl] = useState('');
   const [currentVacancyId, setCurrentVacancyId] = useState<string | null>(null);
   const [previousMode, setPreviousMode] = useState<'upload' | 'link'>('upload');
+  const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+
+  const loadingTexts = [
+    'Разбираем вакансию',
+    'Выбираем важную информацию',
+  ];
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingTextIndex(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setLoadingTextIndex((prev) => (prev + 1) % loadingTexts.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -560,8 +579,11 @@ export function CreateVacancy() {
                         <p className="text-lg font-medium text-gray-900 mb-1">
                           Обрабатываем ваш файл...
                         </p>
-                        <p className="text-sm text-gray-600">
-                          Это может занять несколько секунд
+                        <p className="text-sm text-gray-600 mb-2">
+                          {loadingTexts[loadingTextIndex]}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Обычно занимает не более 5 минут
                         </p>
                       </div>
                     </div>
@@ -978,8 +1000,11 @@ export function CreateVacancy() {
                         <p className="text-lg font-medium text-gray-900 mb-1">
                           Импортируем вакансию...
                         </p>
-                        <p className="text-sm text-gray-600">
-                          Извлекаем данные из ссылки
+                        <p className="text-sm text-gray-600 mb-2">
+                          {loadingTexts[loadingTextIndex]}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Обычно занимает не более 5 минут
                         </p>
                       </div>
                     </div>
