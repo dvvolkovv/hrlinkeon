@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { HTMLContent } from '../components/ui/HTMLContent';
 import { CandidateApplicationForm } from '../components/CandidateApplicationForm';
 import { Briefcase, MapPin, Clock, DollarSign, Calendar, Send, Award } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
@@ -239,24 +240,18 @@ export function PublicVacancy() {
             {additionalInfo.description && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">О вакансии</h3>
-                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {additionalInfo.description}
-                </p>
+                <HTMLContent content={additionalInfo.description} className="text-gray-700" />
               </div>
             )}
 
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Обязанности</h3>
-              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {vacancy.responsibilities}
-              </p>
+              <HTMLContent content={vacancy.responsibilities} className="text-gray-700" />
             </div>
 
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Требования</h3>
-              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {vacancy.requirements}
-              </p>
+              <HTMLContent content={vacancy.requirements} className="text-gray-700" />
             </div>
 
             {additionalInfo.benefits && (
@@ -265,9 +260,7 @@ export function PublicVacancy() {
                   <Award className="w-5 h-5 text-forest-600" />
                   Условия и бонусы
                 </h3>
-                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {additionalInfo.benefits}
-                </p>
+                <HTMLContent content={additionalInfo.benefits} className="text-gray-700" />
               </div>
             )}
 
