@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
+import { RichTextEditor } from '../components/ui/RichTextEditor';
 import { Button } from '../components/ui/Button';
 import { mockStorage } from '../lib/mockData';
 import { Briefcase, FileText, Edit3, Upload, Link as LinkIcon } from 'lucide-react';
@@ -766,44 +767,38 @@ export function CreateVacancy() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <Textarea
+                    <RichTextEditor
                       label="Описание вакансии"
                       value={form.description}
-                      onChange={(e) => updateForm('description', e.target.value)}
+                      onChange={(value) => updateForm('description', value)}
                       placeholder="Описание компании и вакансии..."
-                      rows={4}
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <Textarea
+                    <RichTextEditor
                       label="Требования"
                       value={form.requirements}
-                      onChange={(e) => updateForm('requirements', e.target.value)}
+                      onChange={(value) => updateForm('requirements', value)}
                       placeholder="Опыт работы с React, TypeScript..."
-                      rows={4}
-                      required
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <Textarea
+                    <RichTextEditor
                       label="Обязанности"
                       value={form.responsibilities}
-                      onChange={(e) => updateForm('responsibilities', e.target.value)}
+                      onChange={(value) => updateForm('responsibilities', value)}
                       placeholder="Разработка frontend приложений..."
-                      rows={4}
-                      required
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <Textarea
+                    <RichTextEditor
                       label="Преимущества"
                       value={form.benefits}
-                      onChange={(e) => updateForm('benefits', e.target.value)}
+                      onChange={(value) => updateForm('benefits', value)}
                       placeholder="ДМС, удаленная работа, гибкий график..."
-                      rows={3}
                     />
                   </div>
                 </div>
