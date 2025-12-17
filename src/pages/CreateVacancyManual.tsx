@@ -103,7 +103,7 @@ export function CreateVacancyManual() {
 
       if (form.anti_profile) {
         extendedData.vacancy.anti_profile = {
-          not_suitable_if: form.anti_profile.split('\n').filter(v => v.trim()),
+          avoid: form.anti_profile,
         };
       }
 

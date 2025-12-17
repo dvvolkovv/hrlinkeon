@@ -29,7 +29,9 @@ interface VacancyForm {
   company_values?: string;
   hard_skills?: string;
   soft_skills?: string;
-  anti_profile?: string;
+  anti_profile_avoid?: string;
+  anti_profile_warning_signs?: string;
+  anti_profile_behavioral_red_flags?: string;
   role_goals?: string;
   role_impact?: string;
   hiring_stages?: string;
@@ -60,7 +62,9 @@ export function EditVacancy() {
     company_values: '',
     hard_skills: '',
     soft_skills: '',
-    anti_profile: '',
+    anti_profile_avoid: '',
+    anti_profile_warning_signs: '',
+    anti_profile_behavioral_red_flags: '',
     role_goals: '',
     role_impact: '',
     hiring_stages: '',
@@ -127,7 +131,9 @@ export function EditVacancy() {
         company_values: Array.isArray(extendedData.company?.values) ? extendedData.company.values.join('\n') : '',
         hard_skills: Array.isArray(extendedData.hard_skills) ? extendedData.hard_skills.join('\n') : '',
         soft_skills: Array.isArray(extendedData.soft_skills) ? extendedData.soft_skills.join('\n') : '',
-        anti_profile: extendedData.anti_profile?.not_suitable_if ? extendedData.anti_profile.not_suitable_if.join('\n') : '',
+        anti_profile_avoid: extendedData.anti_profile?.avoid || '',
+        anti_profile_warning_signs: Array.isArray(extendedData.anti_profile?.warning_signs) ? extendedData.anti_profile.warning_signs.join('\n') : '',
+        anti_profile_behavioral_red_flags: Array.isArray(extendedData.anti_profile?.behavioral_red_flags) ? extendedData.anti_profile.behavioral_red_flags.join('\n') : '',
         role_goals: extendedData.role_context?.goals || '',
         role_impact: extendedData.role_context?.impact || '',
         hiring_stages: Array.isArray(extendedData.hiring_process?.stages) ? extendedData.hiring_process.stages.join('\n') : '',
@@ -175,10 +181,11 @@ export function EditVacancy() {
       if (form.hard_skills) extendedData.vacancy.hard_skills = form.hard_skills.split('\n').filter(v => v.trim());
       if (form.soft_skills) extendedData.vacancy.soft_skills = form.soft_skills.split('\n').filter(v => v.trim());
 
-      if (form.anti_profile) {
-        extendedData.vacancy.anti_profile = {
-          not_suitable_if: form.anti_profile.split('\n').filter(v => v.trim()),
-        };
+      if (form.anti_profile_avoid || form.anti_profile_warning_signs || form.anti_profile_behavioral_red_flags) {
+        extendedData.vacancy.anti_profile = {};
+        if (form.anti_profile_avoid) extendedData.vacancy.anti_profile.avoid = form.anti_profile_avoid;
+        if (form.anti_profile_warning_signs) extendedData.vacancy.anti_profile.warning_signs = form.anti_profile_warning_signs.split('\n').filter(v => v.trim());
+        if (form.anti_profile_behavioral_red_flags) extendedData.vacancy.anti_profile.behavioral_red_flags = form.anti_profile_behavioral_red_flags.split('\n').filter(v => v.trim());
       }
 
       if (form.role_goals || form.role_impact) {
@@ -461,13 +468,35 @@ export function EditVacancy() {
 
                   <div>
                     <Textarea
-                      label="Антипрофиль (кому не подойдет)(не видно соискателю)"
-                      value={form.anti_profile || ''}
-                      onChange={(e) => updateForm('anti_profile', e.target.value)}
-                      placeholder="Каждый пункт с новой строки..."
-                      rows={4}
+                      label="Антипрофиль - Кого избегать (не видно соискателю)"
+                      value={form.anti_profile_avoid || ''}
+                      onChange={(e) => updateForm('anti_profile_avoid', e.target.value)}
+                      placeholder="Общее описание кандидатов, которым не подойдет..."
+                      rows={3}
                     />
-                    <p className="text-sm text-gray-500 mt-1">Описание кандидатов, которым не подойдет вакансия</p>
+                    <p className="text-sm text-gray-500 mt-1">Общее описание типа кандидатов, которым не подойдет вакансия</p>
+                  </div>
+
+                  <div>
+                    <Textarea
+                      label="Антипрофиль - Тревожные знаки (не видно соискателю)"
+                      value={form.anti_profile_warning_signs || ''}
+                      onChange={(e) => updateForm('anti_profile_warning_signs', e.target.value)}
+                      placeholder="Каждый пункт с новой строки..."
+                      rows={5}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Признаки в профиле кандидата, на которые нужно обратить внимание</p>
+                  </div>
+
+                  <div>
+                    <Textarea
+                      label="Антипрофиль - Поведенческие красные флаги (не видно соискателю)"
+                      value={form.anti_profile_behavioral_red_flags || ''}
+                      onChange={(e) => updateForm('anti_profile_behavioral_red_flags', e.target.value)}
+                      placeholder="Каждый пункт с новой строки..."
+                      rows={5}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Поведенческие паттерны, которые являются красными флагами</p>
                   </div>
                 </div>
               </div>

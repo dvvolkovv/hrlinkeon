@@ -247,7 +247,17 @@ export function CreateVacancy() {
         company_values: Array.isArray(extendedData.company?.values) ? extendedData.company.values.join('\n') : '',
         hard_skills: Array.isArray(extendedData.hard_skills) ? extendedData.hard_skills.join('\n') : '',
         soft_skills: Array.isArray(extendedData.soft_skills) ? extendedData.soft_skills.join('\n') : '',
-        anti_profile: extendedData.anti_profile?.not_suitable_if ? extendedData.anti_profile.not_suitable_if.join('\n') : '',
+        anti_profile: (() => {
+          const parts = [];
+          if (extendedData.anti_profile?.avoid) parts.push(extendedData.anti_profile.avoid);
+          if (Array.isArray(extendedData.anti_profile?.warning_signs) && extendedData.anti_profile.warning_signs.length > 0) {
+            parts.push(...extendedData.anti_profile.warning_signs);
+          }
+          if (Array.isArray(extendedData.anti_profile?.behavioral_red_flags) && extendedData.anti_profile.behavioral_red_flags.length > 0) {
+            parts.push(...extendedData.anti_profile.behavioral_red_flags);
+          }
+          return parts.join('\n');
+        })(),
         role_goals: extendedData.role_context?.goals || '',
         role_impact: extendedData.role_context?.impact || '',
         hiring_stages: Array.isArray(extendedData.hiring_process?.stages) ? extendedData.hiring_process.stages.join('\n') : '',
@@ -303,7 +313,7 @@ export function CreateVacancy() {
 
       if (form.anti_profile) {
         extendedData.vacancy.anti_profile = {
-          not_suitable_if: form.anti_profile.split('\n').filter(v => v.trim()),
+          avoid: form.anti_profile,
         };
       }
 
@@ -454,9 +464,17 @@ export function CreateVacancy() {
         company_values: Array.isArray(extendedData.company?.values) ? extendedData.company.values.join('\n') : '',
         hard_skills: Array.isArray(extendedData.hard_skills) ? extendedData.hard_skills.join('\n') : '',
         soft_skills: Array.isArray(extendedData.soft_skills) ? extendedData.soft_skills.join('\n') : '',
-        anti_profile: extendedData.anti_profile?.behavioral_red_flags
-          ? extendedData.anti_profile.behavioral_red_flags.join('\n')
-          : (extendedData.anti_profile?.avoid || ''),
+        anti_profile: (() => {
+          const parts = [];
+          if (extendedData.anti_profile?.avoid) parts.push(extendedData.anti_profile.avoid);
+          if (Array.isArray(extendedData.anti_profile?.warning_signs) && extendedData.anti_profile.warning_signs.length > 0) {
+            parts.push(...extendedData.anti_profile.warning_signs);
+          }
+          if (Array.isArray(extendedData.anti_profile?.behavioral_red_flags) && extendedData.anti_profile.behavioral_red_flags.length > 0) {
+            parts.push(...extendedData.anti_profile.behavioral_red_flags);
+          }
+          return parts.join('\n');
+        })(),
         role_goals: extendedData.role_context?.goals || '',
         role_impact: extendedData.role_context?.impact || '',
         hiring_stages: Array.isArray(extendedData.hiring_process?.stages)
