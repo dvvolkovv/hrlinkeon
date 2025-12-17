@@ -209,7 +209,7 @@ export function PublicVacancy() {
           <CardContent className="space-y-6">
             {additionalInfo.pitch && (
               <div className="bg-forest-50 border border-forest-200 rounded-lg p-4">
-                <p className="text-gray-800 leading-relaxed">{additionalInfo.pitch}</p>
+                <HTMLContent content={additionalInfo.pitch} className="text-gray-800" />
               </div>
             )}
 
