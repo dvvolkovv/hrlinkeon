@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { HTMLContent } from '../components/ui/HTMLContent';
 import { ArrowLeft, Briefcase, MapPin, Clock, DollarSign, Building2 } from 'lucide-react';
 
 interface Vacancy {
@@ -181,9 +182,9 @@ export function OpenVacancies() {
                         )}
                       </div>
 
-                      <p className="text-gray-700 line-clamp-3 mb-4">
-                        {vacancy.description_preview}
-                      </p>
+                      <div className="text-gray-700 line-clamp-3 mb-4">
+                        <HTMLContent content={vacancy.description_preview} />
+                      </div>
                     </div>
 
                     <div className="flex lg:flex-col gap-2">

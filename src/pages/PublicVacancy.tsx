@@ -19,8 +19,8 @@ interface PublicVacancyResponse {
   experience?: string;
   salary_from?: number | null;
   salary_to?: number | null;
-  format: 'remote' | 'hybrid' | 'office';
-  workload: 'full' | 'part';
+  format: 'remote' | 'hybrid' | 'office' | 'flexible';
+  workload: 'full' | 'part' | 'full-time' | 'part-time';
   description?: string;
   requirements: string;
   responsibilities: string;
@@ -174,15 +174,18 @@ export function PublicVacancy() {
     return 'По договоренности';
   };
 
-  const workFormatLabels = {
+  const workFormatLabels: Record<string, string> = {
     remote: 'Удаленно',
     hybrid: 'Гибрид',
     office: 'Офис',
+    flexible: 'Гибкий',
   };
 
-  const workScheduleLabels = {
-    full: 'Полный день',
+  const workScheduleLabels: Record<string, string> = {
+    full: 'Полная занятость',
+    'full-time': 'Полная занятость',
     part: 'Частичная занятость',
+    'part-time': 'Частичная занятость',
   };
 
   const levelLabels = {
@@ -221,12 +224,12 @@ export function PublicVacancy() {
 
               <div className="flex items-center gap-3 text-gray-700">
                 <MapPin className="w-5 h-5 text-forest-600" />
-                <span>{workFormatLabels[vacancy.work_format]}</span>
+                <span>{workFormatLabels[vacancy.work_format] || vacancy.work_format}</span>
               </div>
 
               <div className="flex items-center gap-3 text-gray-700">
                 <Clock className="w-5 h-5 text-forest-600" />
-                <span>{workScheduleLabels[vacancy.work_schedule]}</span>
+                <span>{workScheduleLabels[vacancy.work_schedule] || vacancy.work_schedule}</span>
               </div>
 
               {vacancy.experience_years > 0 && (
