@@ -349,7 +349,7 @@ export function CreateVacancyManual() {
 
                   <div>
                     <Textarea
-                      label="Hard Skills(не видно соискателю)
+                      label="Hard Skills (не видно соискателю)"
                       value={form.hard_skills}
                       onChange={(e) => updateForm('hard_skills', e.target.value)}
                       placeholder="Каждый навык с новой строки..."
