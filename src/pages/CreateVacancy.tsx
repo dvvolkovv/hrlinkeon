@@ -768,7 +768,7 @@ export function CreateVacancy() {
 
                   <div className="md:col-span-2">
                     <RichTextEditor
-                      label="Описание вакансии"
+                      label="Описание вакансии(видно соискателю)"
                       value={form.description}
                       onChange={(value) => updateForm('description', value)}
                       placeholder="Описание компании и вакансии..."
@@ -777,7 +777,7 @@ export function CreateVacancy() {
 
                   <div className="md:col-span-2">
                     <RichTextEditor
-                      label="Требования"
+                      label="Требования(видно соискателю)"
                       value={form.requirements}
                       onChange={(value) => updateForm('requirements', value)}
                       placeholder="Опыт работы с React, TypeScript..."
@@ -786,7 +786,7 @@ export function CreateVacancy() {
 
                   <div className="md:col-span-2">
                     <RichTextEditor
-                      label="Обязанности"
+                      label="Обязанности(видно соискателю)"
                       value={form.responsibilities}
                       onChange={(value) => updateForm('responsibilities', value)}
                       placeholder="Разработка frontend приложений..."
@@ -808,7 +808,7 @@ export function CreateVacancy() {
                   <div className="space-y-6">
                     <div>
                       <Textarea
-                        label="Pitch вакансии"
+                        label="Pitch вакансии(видно соискателю)"
                         value={form.pitch}
                         onChange={(e) => updateForm('pitch', e.target.value)}
                         placeholder="Краткое привлекательное описание вакансии..."
@@ -819,7 +819,7 @@ export function CreateVacancy() {
 
                     <div>
                       <Textarea
-                        label="Ценности вакансии"
+                        label="Ценности вакансии(не видно соискателю)"
                         value={form.values}
                         onChange={(e) => updateForm('values', e.target.value)}
                         placeholder="Каждая ценность с новой строки..."
@@ -830,7 +830,7 @@ export function CreateVacancy() {
 
                     <div>
                       <Textarea
-                        label="Hard Skills"
+                        label="Hard Skills(не видно соискателю)"
                         value={form.hard_skills}
                         onChange={(e) => updateForm('hard_skills', e.target.value)}
                         placeholder="Каждый навык с новой строки..."
@@ -841,7 +841,7 @@ export function CreateVacancy() {
 
                     <div>
                       <Textarea
-                        label="Soft Skills"
+                        label="Soft Skills(не видно соискателю)"
                         value={form.soft_skills}
                         onChange={(e) => updateForm('soft_skills', e.target.value)}
                         placeholder="Каждый навык с новой строки..."
@@ -852,7 +852,7 @@ export function CreateVacancy() {
 
                     <div>
                       <Textarea
-                        label="Антипрофиль (кому не подойдет)"
+                        label="Антипрофиль (кому не подойдет) (не видно соискателю)"
                         value={form.anti_profile}
                         onChange={(e) => updateForm('anti_profile', e.target.value)}
                         placeholder="Каждый пункт с новой строки..."
@@ -874,7 +874,7 @@ export function CreateVacancy() {
                     />
 
                     <Textarea
-                      label="Миссия компании"
+                      label="Миссия компании(не видно соискателю)"
                       value={form.company_mission}
                       onChange={(e) => updateForm('company_mission', e.target.value)}
                       placeholder="Миссия и цели компании..."
@@ -882,7 +882,7 @@ export function CreateVacancy() {
                     />
 
                     <Textarea
-                      label="Культура компании"
+                      label="Культура компании(не видно соискателю)"
                       value={form.company_culture}
                       onChange={(e) => updateForm('company_culture', e.target.value)}
                       placeholder="Описание корпоративной культуры..."
@@ -891,7 +891,7 @@ export function CreateVacancy() {
 
                     <div>
                       <Textarea
-                        label="Ценности компании"
+                        label="Ценности компании(не видно соискателю)"
                         value={form.company_values}
                         onChange={(e) => updateForm('company_values', e.target.value)}
                         placeholder="Каждая ценность с новой строки..."
@@ -906,7 +906,7 @@ export function CreateVacancy() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Роль и контекст</h3>
                   <div className="space-y-6">
                     <Textarea
-                      label="Цели роли"
+                      label="Цели роли(не видно соискателю)"
                       value={form.role_goals}
                       onChange={(e) => updateForm('role_goals', e.target.value)}
                       placeholder="Основные цели и задачи позиции..."
@@ -914,7 +914,7 @@ export function CreateVacancy() {
                     />
 
                     <Textarea
-                      label="Влияние роли"
+                      label="Влияние роли(не видно соискателю)"
                       value={form.role_impact}
                       onChange={(e) => updateForm('role_impact', e.target.value)}
                       placeholder="Какое влияние будет иметь кандидат на продукт и компанию..."
@@ -928,7 +928,7 @@ export function CreateVacancy() {
                   <div className="space-y-6">
                     <div>
                       <Textarea
-                        label="Этапы найма"
+                        label="Этапы найма(не видно соискателю)"
                         value={form.hiring_stages}
                         onChange={(e) => updateForm('hiring_stages', e.target.value)}
                         placeholder="Каждый этап с новой строки..."
@@ -939,7 +939,7 @@ export function CreateVacancy() {
 
                     <div>
                       <Textarea
-                        label="Мотиваторы"
+                        label="Мотиваторы(не видно соискателю)"
                         value={form.motivation_drivers}
                         onChange={(e) => updateForm('motivation_drivers', e.target.value)}
                         placeholder="Каждый мотиватор с новой строки..."
