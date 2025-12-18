@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { useRef, useEffect } from 'react';
+import { Bold, Italic, List, ListOrdered } from 'lucide-react';
 
 interface RichTextEditorProps {
   label?: string;
@@ -19,26 +18,19 @@ export const RichTextEditor = ({
   error,
   className = '',
 }: RichTextEditorProps) => {
-  const modules = useMemo(
-    () => ({
-      toolbar: [
-        ['bold', 'italic'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-      ],
-      clipboard: {
-        matchVisual: false,
-      },
-    }),
-    []
-  );
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  const formats = ['bold', 'italic', 'list', 'bullet'];
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value || '';
+    }
+  }, [value]);
 
   const sanitizeHtml = (html: string): string => {
     const div = document.createElement('div');
     div.innerHTML = html;
 
-    const allowedTags = ['P', 'STRONG', 'EM', 'UL', 'OL', 'LI', 'BR'];
+    const allowedTags = ['P', 'STRONG', 'EM', 'B', 'I', 'UL', 'OL', 'LI', 'BR', 'DIV'];
     const removeNodes: Node[] = [];
 
     const walk = (node: Node) => {
@@ -65,9 +57,17 @@ export const RichTextEditor = ({
     return div.innerHTML;
   };
 
-  const handleChange = (content: string) => {
-    const sanitized = sanitizeHtml(content);
-    onChange(sanitized);
+  const handleInput = () => {
+    if (editorRef.current) {
+      const sanitized = sanitizeHtml(editorRef.current.innerHTML);
+      onChange(sanitized);
+    }
+  };
+
+  const execCommand = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+    handleInput();
   };
 
   return (
@@ -78,49 +78,74 @@ export const RichTextEditor = ({
         </label>
       )}
       <div
-        className={`rich-text-editor border rounded-lg ${
+        className={`rich-text-editor border rounded-lg overflow-hidden ${
           error ? 'border-red-500' : 'border-gray-300'
         }`}
       >
-        <ReactQuill
-          theme="snow"
-          value={value || ''}
-          onChange={handleChange}
-          modules={modules}
-          formats={formats}
-          placeholder={placeholder}
-          className="bg-white"
+        <div className="toolbar flex gap-1 p-2 bg-gray-50 border-b border-gray-200">
+          <button
+            type="button"
+            onClick={() => execCommand('bold')}
+            className="p-2 hover:bg-gray-200 rounded transition-colors"
+            title="Bold"
+          >
+            <Bold size={16} className="text-gray-700" />
+          </button>
+          <button
+            type="button"
+            onClick={() => execCommand('italic')}
+            className="p-2 hover:bg-gray-200 rounded transition-colors"
+            title="Italic"
+          >
+            <Italic size={16} className="text-gray-700" />
+          </button>
+          <div className="w-px bg-gray-300 mx-1" />
+          <button
+            type="button"
+            onClick={() => execCommand('insertUnorderedList')}
+            className="p-2 hover:bg-gray-200 rounded transition-colors"
+            title="Bullet List"
+          >
+            <List size={16} className="text-gray-700" />
+          </button>
+          <button
+            type="button"
+            onClick={() => execCommand('insertOrderedList')}
+            className="p-2 hover:bg-gray-200 rounded transition-colors"
+            title="Numbered List"
+          >
+            <ListOrdered size={16} className="text-gray-700" />
+          </button>
+        </div>
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={handleInput}
+          className="editor-content p-3 min-h-[150px] focus:outline-none bg-white"
+          data-placeholder={placeholder}
+          suppressContentEditableWarning
         />
       </div>
       {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
       <style>{`
-        .rich-text-editor .ql-container {
-          min-height: 150px;
-          font-size: 14px;
-          border-bottom-left-radius: 0.5rem;
-          border-bottom-right-radius: 0.5rem;
-        }
-        .rich-text-editor .ql-toolbar {
-          border-top-left-radius: 0.5rem;
-          border-top-right-radius: 0.5rem;
-          background-color: #f9fafb;
-          border-bottom: 1px solid #e5e7eb;
-        }
-        .rich-text-editor .ql-editor {
-          min-height: 150px;
-        }
-        .rich-text-editor .ql-editor.ql-blank::before {
+        .editor-content:empty:before {
+          content: attr(data-placeholder);
           color: #9ca3af;
-          font-style: normal;
+          pointer-events: none;
         }
-        .rich-text-editor .ql-stroke {
-          stroke: #4b5563;
+        .editor-content p {
+          margin: 0 0 0.5rem 0;
         }
-        .rich-text-editor .ql-fill {
-          fill: #4b5563;
+        .editor-content p:last-child {
+          margin-bottom: 0;
         }
-        .rich-text-editor .ql-picker-label {
-          color: #4b5563;
+        .editor-content ul,
+        .editor-content ol {
+          margin: 0.5rem 0;
+          padding-left: 1.5rem;
+        }
+        .editor-content li {
+          margin: 0.25rem 0;
         }
         .rich-text-editor:focus-within {
           outline: none;
