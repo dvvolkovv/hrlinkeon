@@ -18,7 +18,6 @@ import {
   Users2,
   AlertTriangle,
   X,
-  Sparkles,
   Bookmark,
   Edit,
   Share2,
@@ -475,15 +474,6 @@ export function VacancyDashboard() {
               <ArrowLeft className="w-4 h-4" />
               Назад к вакансиям
             </Button>
-            {candidates.length > 0 && (
-              <Button
-                onClick={() => navigate(`/vacancy/${vacancyId}/candidates-chat`)}
-                className="gap-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700"
-              >
-                <Sparkles className="w-4 h-4" />
-                AI-советник по кандидатам
-              </Button>
-            )}
             <Button
               variant="outline"
               onClick={() => navigate(`/vacancy/${vacancyId}/edit`)}
