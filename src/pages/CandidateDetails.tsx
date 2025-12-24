@@ -85,6 +85,7 @@ interface ApiVacancy {
 interface ChatMessage {
   role: string;
   content: string;
+  timestamp: string;
 }
 
 interface CandidateDetailsResponse {
@@ -974,6 +975,21 @@ export function CandidateDetails() {
                               }`}
                             >
                               <p className="text-sm leading-relaxed">{message.content}</p>
+                              {message.timestamp && (
+                                <span
+                                  className={`text-xs mt-2 block ${
+                                    message.role === 'assistant' ? 'text-gray-500' : 'text-white/70'
+                                  }`}
+                                >
+                                  {new Date(message.timestamp).toLocaleString('ru-RU', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
