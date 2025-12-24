@@ -30,6 +30,7 @@ import {
   X,
   Calendar,
   Bookmark,
+  Download,
 } from 'lucide-react';
 
 interface ApiCandidate {
@@ -106,6 +107,7 @@ export function CandidateDetails() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectComment, setRejectComment] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
+  const [downloadingCV, setDownloadingCV] = useState(false);
 
   useEffect(() => {
     loadCandidateData();
@@ -299,6 +301,52 @@ export function CandidateDetails() {
     }
   };
 
+  const handleDownloadCV = async () => {
+    if (!data || !candidateId) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setDownloadingCV(true);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-get-candidate-details/api/getcv/${data.vacancy.id}/candidates/${candidateId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to download CV');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CV_${data.candidate.name.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download CV:', error);
+      alert('Не удалось скачать CV');
+    } finally {
+      setDownloadingCV(false);
+    }
+  };
+
   const statusColors: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info'> = {
     new: 'info',
     screening: 'warning',
@@ -412,45 +460,56 @@ export function CandidateDetails() {
                       )}
                     </div>
                   </div>
-                  {candidate.status !== 'rejected' && candidate.status !== 'accepted' && (
-                    <div className="flex flex-col gap-2">
-                      {candidate.status !== 'interviewed' && (
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleDownloadCV}
+                      disabled={downloadingCV}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Download className="w-4 h-4" />
+                      {downloadingCV ? 'Загрузка...' : 'Скачать CV'}
+                    </Button>
+                    {candidate.status !== 'rejected' && candidate.status !== 'accepted' && (
+                      <>
+                        {candidate.status !== 'interviewed' && (
+                          <Button
+                            onClick={() => updateCandidateStatus('interviewed')}
+                            disabled={statusUpdating}
+                            className="gap-2 whitespace-nowrap"
+                          >
+                            <Calendar className="w-4 h-4" />
+                            На интервью
+                          </Button>
+                        )}
                         <Button
-                          onClick={() => updateCandidateStatus('interviewed')}
+                          onClick={() => updateCandidateStatus('accepted')}
                           disabled={statusUpdating}
-                          className="gap-2 whitespace-nowrap"
+                          className="gap-2 whitespace-nowrap bg-green-600 hover:bg-green-700"
                         >
-                          <Calendar className="w-4 h-4" />
-                          На интервью
+                          <CheckCircle className="w-4 h-4" />
+                          Предложение
                         </Button>
-                      )}
-                      <Button
-                        onClick={() => updateCandidateStatus('accepted')}
-                        disabled={statusUpdating}
-                        className="gap-2 whitespace-nowrap bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        Предложение
-                      </Button>
-                      <Button
-                        onClick={() => updateCandidateStatus('reserve')}
-                        disabled={statusUpdating}
-                        className="gap-2 whitespace-nowrap bg-amber-600 hover:bg-amber-700"
-                      >
-                        <Bookmark className="w-4 h-4" />
-                        Резерв
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={openRejectModal}
-                        disabled={statusUpdating}
-                        className="gap-2 whitespace-nowrap border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
-                      >
-                        <X className="w-4 h-4" />
-                        Отклонить
-                      </Button>
-                    </div>
-                  )}
+                        <Button
+                          onClick={() => updateCandidateStatus('reserve')}
+                          disabled={statusUpdating}
+                          className="gap-2 whitespace-nowrap bg-amber-600 hover:bg-amber-700"
+                        >
+                          <Bookmark className="w-4 h-4" />
+                          Резерв
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={openRejectModal}
+                          disabled={statusUpdating}
+                          className="gap-2 whitespace-nowrap border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                        >
+                          <X className="w-4 h-4" />
+                          Отклонить
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
             </Card>

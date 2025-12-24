@@ -26,7 +26,8 @@ import {
   Lock,
   Unlock,
   ArrowUpDown,
-  Sparkles
+  Sparkles,
+  Download
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -68,6 +69,7 @@ export function VacancyDashboard() {
   const [deletingVacancy, setDeletingVacancy] = useState(false);
   const [updatingVacancyStatus, setUpdatingVacancyStatus] = useState(false);
   const [publishingVacancy, setPublishingVacancy] = useState(false);
+  const [downloadingCVId, setDownloadingCVId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -362,6 +364,52 @@ export function VacancyDashboard() {
       alert('Не удалось изменить статус вакансии');
     } finally {
       setUpdatingVacancyStatus(false);
+    }
+  };
+
+  const handleDownloadCV = async (candidateId: string, candidateName: string) => {
+    if (!vacancyId) return;
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setDownloadingCVId(candidateId);
+
+      const response = await fetch(
+        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-get-candidate-details/api/getcv/${vacancyId}/candidates/${candidateId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to download CV');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CV_${candidateName.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download CV:', error);
+      alert('Не удалось скачать CV');
+    } finally {
+      setDownloadingCVId(null);
     }
   };
 
@@ -811,6 +859,16 @@ export function VacancyDashboard() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadCV(candidate.id, candidate.name)}
+                        disabled={downloadingCVId === candidate.id}
+                        className="whitespace-nowrap gap-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        {downloadingCVId === candidate.id ? 'Загрузка...' : 'Скачать CV'}
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
