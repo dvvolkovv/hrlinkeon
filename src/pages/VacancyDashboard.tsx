@@ -25,7 +25,8 @@ import {
   Trash2,
   Lock,
   Unlock,
-  ArrowUpDown
+  ArrowUpDown,
+  Sparkles
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -810,6 +811,20 @@ export function VacancyDashboard() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(`/candidate/${candidate.id}/ai-chat`, {
+                          state: {
+                            vacancyId: vacancyId,
+                            candidateName: candidate.name
+                          }
+                        })}
+                        className="whitespace-nowrap gap-1.5 bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200 text-primary-700 hover:from-primary-100 hover:to-primary-200"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        AI-советник
+                      </Button>
                       {candidate.status === 'new' && (
                         <Button
                           size="sm"
