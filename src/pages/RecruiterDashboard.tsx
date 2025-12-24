@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { Select } from '../components/ui/Select';
 import { Briefcase, Users, TrendingUp, Clock, CheckCircle, XCircle, UserCheck, Eye, Plus, BarChart3, Share2, Check, Coins, LogOut, CreditCard as Edit, MessageSquare, Trash2, AlertTriangle, Lock, Unlock } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -28,6 +29,7 @@ export function RecruiterDashboard() {
   const [vacancyToDelete, setVacancyToDelete] = useState<Vacancy | null>(null);
   const [updatingVacancyId, setUpdatingVacancyId] = useState<string | null>(null);
   const [publishingVacancyId, setPublishingVacancyId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string>('date-desc');
 
   useEffect(() => {
     loadDashboardData();
@@ -299,6 +301,29 @@ export function RecruiterDashboard() {
     );
   }
 
+  const sortVacancies = (vacancies: VacancyStats[]): VacancyStats[] => {
+    const sorted = [...vacancies];
+
+    switch (sortBy) {
+      case 'date-desc':
+        return sorted.sort((a, b) =>
+          new Date(b.vacancy.created_at).getTime() - new Date(a.vacancy.created_at).getTime()
+        );
+      case 'date-asc':
+        return sorted.sort((a, b) =>
+          new Date(a.vacancy.created_at).getTime() - new Date(b.vacancy.created_at).getTime()
+        );
+      case 'score-desc':
+        return sorted.sort((a, b) => b.avgMatchScore - a.avgMatchScore);
+      case 'score-asc':
+        return sorted.sort((a, b) => a.avgMatchScore - b.avgMatchScore);
+      default:
+        return sorted;
+    }
+  };
+
+  const sortedVacancies = sortVacancies(vacanciesStats);
+
   const totalStats = {
     totalVacancies: vacanciesStats.length,
     totalCandidates: vacanciesStats.reduce((sum, v) => sum + v.totalCandidates, 0),
@@ -431,8 +456,24 @@ export function RecruiterDashboard() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-6">
-            {vacanciesStats.map(({ vacancy, totalCandidates, newCandidates, screeningCandidates, interviewedCandidates, offeredCandidates, rejectedCandidates, avgMatchScore }) => (
+          <>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Все вакансии</h2>
+              <div className="w-full sm:w-64">
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  options={[
+                    { value: 'date-desc', label: 'Сначала новые' },
+                    { value: 'date-asc', label: 'Сначала старые' },
+                    { value: 'score-desc', label: 'Высокий скоринг' },
+                    { value: 'score-asc', label: 'Низкий скоринг' },
+                  ]}
+                />
+              </div>
+            </div>
+            <div className="space-y-6">
+              {sortedVacancies.map(({ vacancy, totalCandidates, newCandidates, screeningCandidates, interviewedCandidates, offeredCandidates, rejectedCandidates, avgMatchScore }) => (
             <Card
               key={vacancy.id}
               hover
@@ -625,8 +666,9 @@ export function RecruiterDashboard() {
                 </div>
               </CardContent>
             </Card>
-          ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
