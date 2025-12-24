@@ -25,7 +25,8 @@ import {
   Check,
   Trash2,
   Lock,
-  Unlock
+  Unlock,
+  ArrowUpDown
 } from 'lucide-react';
 import { Vacancy } from '../types/database';
 
@@ -48,6 +49,8 @@ interface ApiCandidate {
   updated_at: string;
 }
 
+type SortType = 'date_desc' | 'date_asc' | 'score_desc' | 'score_asc';
+
 export function VacancyDashboard() {
   const { vacancyId } = useParams<{ vacancyId: string }>();
   const navigate = useNavigate();
@@ -55,6 +58,7 @@ export function VacancyDashboard() {
   const [candidates, setCandidates] = useState<ApiCandidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortType>('date_desc');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingCandidate, setRejectingCandidate] = useState<ApiCandidate | null>(null);
   const [rejectComment, setRejectComment] = useState('');
@@ -410,9 +414,35 @@ export function VacancyDashboard() {
     reserved: 'warning',
   };
 
-  const filteredCandidates = filterStatus === 'all'
-    ? candidates
-    : candidates.filter(c => c.status === filterStatus);
+  const sortCandidates = (candidateList: ApiCandidate[], sortType: SortType): ApiCandidate[] => {
+    const sorted = [...candidateList];
+
+    switch (sortType) {
+      case 'date_desc':
+        return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case 'date_asc':
+        return sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      case 'score_desc':
+        return sorted.sort((a, b) => {
+          const scoreA = a.scoring?.overall_score || 0;
+          const scoreB = b.scoring?.overall_score || 0;
+          return scoreB - scoreA;
+        });
+      case 'score_asc':
+        return sorted.sort((a, b) => {
+          const scoreA = a.scoring?.overall_score || 0;
+          const scoreB = b.scoring?.overall_score || 0;
+          return scoreA - scoreB;
+        });
+      default:
+        return sorted;
+    }
+  };
+
+  const filteredCandidates = sortCandidates(
+    filterStatus === 'all' ? candidates : candidates.filter(c => c.status === filterStatus),
+    sortBy
+  );
 
   const stats = {
     total: candidates.length,
@@ -607,30 +637,68 @@ export function VacancyDashboard() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Кандидаты</h2>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant={filterStatus === 'all' ? 'primary' : 'outline'}
-                  onClick={() => setFilterStatus('all')}
-                >
-                  Все
-                </Button>
-                <Button
-                  size="sm"
-                  variant={filterStatus === 'new' ? 'primary' : 'outline'}
-                  onClick={() => setFilterStatus('new')}
-                >
-                  Новые
-                </Button>
-                <Button
-                  size="sm"
-                  variant={filterStatus === 'screening' ? 'primary' : 'outline'}
-                  onClick={() => setFilterStatus('screening')}
-                >
-                  Скрининг
-                </Button>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Кандидаты</h2>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={filterStatus === 'all' ? 'primary' : 'outline'}
+                    onClick={() => setFilterStatus('all')}
+                  >
+                    Все
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={filterStatus === 'new' ? 'primary' : 'outline'}
+                    onClick={() => setFilterStatus('new')}
+                  >
+                    Новые
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={filterStatus === 'screening' ? 'primary' : 'outline'}
+                    onClick={() => setFilterStatus('screening')}
+                  >
+                    Скрининг
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">Сортировка:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant={sortBy === 'date_desc' ? 'primary' : 'outline'}
+                    onClick={() => setSortBy('date_desc')}
+                  >
+                    Дата: новые
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={sortBy === 'date_asc' ? 'primary' : 'outline'}
+                    onClick={() => setSortBy('date_asc')}
+                  >
+                    Дата: старые
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={sortBy === 'score_desc' ? 'primary' : 'outline'}
+                    onClick={() => setSortBy('score_desc')}
+                  >
+                    Скоринг: высокий
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={sortBy === 'score_asc' ? 'primary' : 'outline'}
+                    onClick={() => setSortBy('score_asc')}
+                  >
+                    Скоринг: низкий
+                  </Button>
+                </div>
               </div>
             </div>
           </CardHeader>
