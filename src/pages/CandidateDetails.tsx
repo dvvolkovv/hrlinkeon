@@ -31,6 +31,7 @@ import {
   Calendar,
   Bookmark,
   Download,
+  Sparkles,
 } from 'lucide-react';
 
 interface ApiCandidate {
@@ -469,6 +470,19 @@ export function CandidateDetails() {
                     >
                       <Download className="w-4 h-4" />
                       {downloadingCV ? 'Загрузка...' : 'Скачать CV'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate(`/candidate/${candidateId}/ai-chat`, {
+                        state: {
+                          vacancyId: vacancy.id,
+                          candidateName: candidate.name
+                        }
+                      })}
+                      className="gap-2 whitespace-nowrap bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200 text-primary-700 hover:from-primary-100 hover:to-primary-200"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      AI-советник
                     </Button>
                     {candidate.status !== 'rejected' && candidate.status !== 'accepted' && (
                       <>
