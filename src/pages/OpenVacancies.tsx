@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { HTMLContent } from '../components/ui/HTMLContent';
 import { ArrowLeft, Briefcase, MapPin, Clock, DollarSign, Building2 } from 'lucide-react';
+import { apiGet } from '../lib/api';
 
 interface Vacancy {
   id: string;
@@ -65,8 +66,7 @@ export function OpenVacancies() {
   useEffect(() => {
     const fetchVacancies = async () => {
       try {
-        const response = await fetch('https://nomira-ai-test.up.railway.app/webhook/public/vacancies/all');
-        const data: ApiResponse = await response.json();
+        const data = await apiGet<ApiResponse>('/public/vacancies/all', { skipAuth: true });
 
         if (data.success) {
           setVacancies(data.data);

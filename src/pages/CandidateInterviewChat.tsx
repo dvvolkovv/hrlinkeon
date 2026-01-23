@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { apiPost, apiFetch } from '../lib/api';
 
 interface Message {
   role: 'assistant' | 'user';
@@ -72,28 +73,21 @@ export function CandidateInterviewChat() {
     if (!publicLink || !candidateId) return;
 
     try {
-      const statusUrl = `https://nomira-ai-test.up.railway.app/webhook/fb753981-7139-4a49-9bc6-df3e8afc577a/public/vacancies/${publicLink}/candidates/${candidateId}/profile-status`;
-
-      const response = await fetch(statusUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const data = await apiPost<ProfileStatus | ProfileStatus[]>(
+        `/public/vacancies/candidates/profile-status`,
+        {
           candidate_id: candidateId,
           public_link: publicLink,
-        }),
-      });
+        },
+        { skipAuth: true }
+      );
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Profile status response:', data);
+      console.log('Profile status response:', data);
 
-        if (Array.isArray(data) && data.length > 0) {
-          setProfileStatus(data[0]);
-        } else if (data && typeof data === 'object' && 'profile' in data) {
-          setProfileStatus(data);
-        }
+      if (Array.isArray(data) && data.length > 0) {
+        setProfileStatus(data[0]);
+      } else if (data && typeof data === 'object' && 'profile' in data) {
+        setProfileStatus(data);
       }
     } catch (error) {
       console.error('Error checking profile status:', error);
@@ -101,17 +95,16 @@ export function CandidateInterviewChat() {
   };
 
   const sendMessageToAPI = async (message: string) => {
-    const apiUrl = `https://nomira-ai-test.up.railway.app/webhook/82aa583e-af84-4dde-87ce-1b924752ff1e/public/vacancies/${publicLink}/candidates/${candidateId}/chat`;
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chatInput: message,
-      }),
-    });
+    const response = await apiFetch(
+      `/public/vacancies/${publicLink}/candidates/${candidateId}/chat`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          chatInput: message,
+        }),
+        skipAuth: true,
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Ошибка при получении ответа от сервера');

@@ -4,6 +4,7 @@ import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { Upload, FileText, CheckCircle, Link as LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 interface CandidateApplicationFormProps {
   vacancyId: string;
@@ -109,11 +110,12 @@ export function CandidateApplicationForm({
 
       setUploadProgress(30);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-candidate-apply/public/vacancies/${publicLink}/apply`,
+      const response = await apiFetch(
+        `/public/vacancies/${publicLink}/apply`,
         {
           method: 'POST',
           body: formData,
+          skipAuth: true,
         }
       );
 

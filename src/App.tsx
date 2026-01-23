@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { VerifyCode } from './pages/VerifyCode';
@@ -21,9 +22,23 @@ import { Privacy } from './pages/Privacy';
 import { Terms } from './pages/Terms';
 import { OpenVacancies } from './pages/OpenVacancies';
 
-function App() {
+function AppRouter() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Обработчик события истечения авторизации
+    const handleAuthExpired = () => {
+      navigate('/login');
+    };
+
+    window.addEventListener('auth:expired', handleAuthExpired);
+
+    return () => {
+      window.removeEventListener('auth:expired', handleAuthExpired);
+    };
+  }, [navigate]);
+
   return (
-    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -48,6 +63,13 @@ function App() {
         <Route path="/candidate/:candidateId/ai-chat" element={<CandidateAIChat />} />
         <Route path="/vacancy/:vacancyId/dashboard" element={<VacancyDashboard />} />
       </Routes>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRouter />
     </BrowserRouter>
   );
 }

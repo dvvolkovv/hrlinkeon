@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { apiGet } from '../lib/api';
 
 interface HardSkillsMatch {
   match_score: number;
@@ -42,15 +43,10 @@ export function CandidateStatus() {
 
   const loadStatus = async () => {
     try {
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-candidate-status/public/vacancies/${publicLink}/candidates/${candidateId}/status`
+      const data = await apiGet<CandidateStatusResponse>(
+        `/public/vacancies/${publicLink}/candidates/${candidateId}/status`,
+        { skipAuth: true }
       );
-
-      if (!response.ok) {
-        throw new Error('Не удалось загрузить статус');
-      }
-
-      const data: CandidateStatusResponse = await response.json();
       setStatus(data);
       setError(null);
     } catch (err) {

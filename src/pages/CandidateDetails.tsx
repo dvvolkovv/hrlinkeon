@@ -4,6 +4,8 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Textarea } from '../components/ui/Textarea';
+import { apiPost, apiFetch } from '../lib/api';
+import { getUserId } from '../lib/auth';
 import {
   ArrowLeft,
   Mail,
@@ -120,7 +122,7 @@ export function CandidateDetails() {
       setLoading(true);
       setError(null);
 
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         setError('Не удалось получить данные пользователя');
         return;
@@ -129,62 +131,39 @@ export function CandidateDetails() {
       const vacancyIdFromState = (location.state as { vacancyId?: string })?.vacancyId;
 
       if (vacancyIdFromState) {
-        const response = await fetch(
-          `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-get-candidate-details/api/vacancies/${vacancyIdFromState}/candidates/${candidateId}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ user_id: userId }),
+        const result = await apiPost<CandidateDetailsResponse>(
+          `/api/v2/vacancies/candidate_detail`,
+          { 
+            candidate_id: candidateId,
+            vacancy_id: vacancyIdFromState
           }
         );
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setData(result);
-            return;
-          }
+        if (result.success) {
+          setData(result);
+          return;
         }
       }
 
-      const vacanciesResponse = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: userId }),
-      });
+      const vacanciesResult = await apiPost<{ success: boolean; data: any[] }>('/api/v2/vacancies', {});
 
-      if (!vacanciesResponse.ok) {
-        throw new Error('Failed to fetch vacancies');
-      }
-
-      const vacanciesResult = await vacanciesResponse.json();
       const allVacancies = vacanciesResult.data || [];
 
       let candidateData: CandidateDetailsResponse | null = null;
 
       for (const vacancy of allVacancies) {
         try {
-          const response = await fetch(
-            `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-get-candidate-details/api/vacancies/${vacancy.id}/candidates/${candidateId}`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ user_id: userId }),
-            }
+          const result = await apiPost<CandidateDetailsResponse>(
+            `/api/v2/vacancies/candidate_detail`,
+            { 
+              vacancy_id: vacancy.id,
+              candidate_id: candidateId
+             }
           );
 
-          if (response.ok) {
-            const result = await response.json();
-            if (result.success) {
-              candidateData = result;
-              break;
-            }
+          if (result.success) {
+            candidateData = result;
+            break;
           }
         } catch (err) {
           continue;
@@ -199,7 +178,7 @@ export function CandidateDetails() {
       setData(candidateData);
     } catch (error) {
       console.error('Error loading candidate data:', error);
-      setError('Ошибка при загрузке данных кандидата');
+      setError(error instanceof Error ? error.message : 'Ошибка при загрузке данных кандидата');
     } finally {
       setLoading(false);
     }
@@ -211,36 +190,25 @@ export function CandidateDetails() {
     try {
       setStatusUpdating(true);
 
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         alert('Не удалось получить данные пользователя');
         return;
       }
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-reject-candidate/api/vacancies/${data.vacancy.id}/candidates/${candidateId}/update_status`,
+      await apiPost<{ success: boolean; message?: string }>(
+        `/api/v2/vacancies/candidates/update_status`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            status: newStatus,
-          }),
+          vacancy_id: vacancy.id,
+          candidate_id: candidateId,
+          status: newStatus,
         }
       );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to update status');
-      }
 
       await loadCandidateData();
     } catch (error) {
       console.error('Error updating candidate status:', error);
-      alert('Не удалось обновить статус кандидата. Попробуйте еще раз.');
+      alert(error instanceof Error ? error.message : 'Не удалось обновить статус кандидата. Попробуйте еще раз.');
     } finally {
       setStatusUpdating(false);
     }
@@ -259,7 +227,7 @@ export function CandidateDetails() {
   const handleRejectCandidate = async () => {
     if (!data || !candidateId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       alert('Не удалось получить данные пользователя');
       return;
@@ -273,31 +241,20 @@ export function CandidateDetails() {
     try {
       setIsRejecting(true);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-reject-candidate/api/vacancies/${data.vacancy.id}/candidates/${candidateId}/reject`,
+      await apiPost<{ success: boolean; message?: string }>(
+        `/api/v2/vacancies/candidates/reject`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            comment: rejectComment.trim(),
-          }),
+          vacancy_id: vacancy.id,
+          candidate_id: candidateId,
+          comment: rejectComment.trim(),
         }
       );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to reject candidate');
-      }
 
       closeRejectModal();
       await loadCandidateData();
     } catch (error) {
       console.error('Failed to reject candidate:', error);
-      alert('Не удалось отклонить кандидата. Попробуйте еще раз.');
+      alert(error instanceof Error ? error.message : 'Не удалось отклонить кандидата. Попробуйте еще раз.');
     } finally {
       setIsRejecting(false);
     }
@@ -306,7 +263,7 @@ export function CandidateDetails() {
   const handleDownloadCV = async () => {
     if (!data || !candidateId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       alert('Не удалось получить данные пользователя');
       return;
@@ -315,15 +272,13 @@ export function CandidateDetails() {
     try {
       setDownloadingCV(true);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-get-candidate-details/api/getcv/${data.vacancy.id}/candidates/${candidateId}`,
+      const response = await apiFetch(
+        `/api/v2/getcv/candidates`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
           body: JSON.stringify({
-            user_id: userId,
+            vacancy_id: vacancy.id,
+            candidate_id: candidateId,
           }),
         }
       );
@@ -343,7 +298,7 @@ export function CandidateDetails() {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Failed to download CV:', error);
-      alert('Не удалось скачать CV');
+      alert(error instanceof Error ? error.message : 'Не удалось скачать CV');
     } finally {
       setDownloadingCV(false);
     }

@@ -7,6 +7,8 @@ import { Textarea } from '../components/ui/Textarea';
 import { RichTextEditor } from '../components/ui/RichTextEditor';
 import { Button } from '../components/ui/Button';
 import { Edit3, ArrowLeft } from 'lucide-react';
+import { apiPost } from '../lib/api';
+import { getUserId } from '../lib/auth';
 
 interface VacancyForm {
   title: string;
@@ -75,7 +77,7 @@ export function CreateVacancyManual() {
     setError(null);
 
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         navigate('/login');
         return;
@@ -145,19 +147,7 @@ export function CreateVacancyManual() {
         extended_data: extendedData,
       };
 
-      const response = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/create_vacancy_text', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create vacancy');
-      }
-
-      const result = await response.json();
+      const result = await apiPost<{ id: string }>('/api/v2/create_vacancy_text', payload);
       navigate(`/vacancy/${result.id}/profiling`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при создании вакансии');

@@ -6,6 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { DocumentContent } from '../components/DocumentContent';
 import { Phone, ArrowRight, Loader } from 'lucide-react';
+import { apiPost } from '../lib/api';
 
 export function Login() {
   const [phone, setPhone] = useState('');
@@ -75,27 +76,12 @@ export function Login() {
 
     try {
       const cleanPhone = '+' + phone.replace(/\D/g, '');
-      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
 
-      if (!hrLinkeonUrl) {
-        throw new Error('HR Linkeon URL не настроен');
-      }
-
-      const sendCodeUrl = `${hrLinkeonUrl}/webhook/api/auth/send-code`;
-
-      const response = await fetch(sendCodeUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone: cleanPhone }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Ошибка отправки кода');
-      }
+      await apiPost<{ success: boolean; error?: string }>(
+        '/api/v2/auth/send-code',
+        { phone: cleanPhone },
+        { skipAuth: true }
+      );
 
       console.log(`[SUCCESS] SMS код отправлен на ${cleanPhone}`);
 

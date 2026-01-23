@@ -4,6 +4,8 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Textarea } from '../components/ui/Textarea';
+import { apiPost, apiDelete, apiPatch, apiFetch } from '../lib/api';
+import { getUserId } from '../lib/auth';
 import {
   Users,
   TrendingUp,
@@ -77,7 +79,7 @@ export function VacancyDashboard() {
 
   const loadData = async () => {
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         navigate('/login');
         return;
@@ -89,65 +91,46 @@ export function VacancyDashboard() {
         return;
       }
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/0414c268-60bc-4665-a2ef-99d3468dede8/api/${userId}/vacancies/${vacancyId}/candidates`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch candidates');
-      }
-
-      const result = await response.json();
+      const result = await apiPost<any>(`/api/v2/vacancies/candidates`, {
+        vacancy_id: vacancyId,
+      });
 
       let candidatesData: ApiCandidate[] = [];
       if (Array.isArray(result)) {
         candidatesData = result[0]?.data || [];
       } else if (result.data) {
         candidatesData = result.data;
+      } else if (result.success && result.data) {
+        candidatesData = Array.isArray(result.data) ? result.data : [];
       }
 
       const validCandidates = candidatesData.filter(c => c.id && c.email);
       setCandidates(validCandidates);
 
-      const vacancyResponse = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: userId }),
-      });
+      const vacancyResult = await apiPost<{ success: boolean; data: any[] }>('/api/v2/vacancies', {});
 
-      if (vacancyResponse.ok) {
-        const vacancyResult = await vacancyResponse.json();
-        const apiVacancies = vacancyResult.data || [];
-        const currentVacancy = apiVacancies.find((v: any) => v.id === vacancyId);
+      const apiVacancies = vacancyResult.data || [];
+      const currentVacancy = apiVacancies.find((v: any) => v.id === vacancyId);
 
-        if (currentVacancy) {
-          setVacancy({
-            id: currentVacancy.id,
-            hr_user_id: currentVacancy.user_id,
-            title: currentVacancy.title,
-            department: currentVacancy.department,
-            level: currentVacancy.level,
-            experience_years: 0,
-            salary_min: currentVacancy.salary_from || null,
-            salary_max: currentVacancy.salary_to || null,
-            work_format: currentVacancy.format,
-            work_schedule: currentVacancy.vacancy_data?.workload || 'full',
-            requirements: currentVacancy.vacancy_data?.requirements || '',
-            responsibilities: currentVacancy.vacancy_data?.responsibilities || '',
-            status: currentVacancy.status,
-            slug: currentVacancy.public_link || currentVacancy.id,
-            created_at: currentVacancy.created_at,
-            updated_at: currentVacancy.updated_at,
-          });
-        }
+      if (currentVacancy) {
+        setVacancy({
+          id: currentVacancy.id,
+          hr_user_id: currentVacancy.user_id,
+          title: currentVacancy.title,
+          department: currentVacancy.department,
+          level: currentVacancy.level,
+          experience_years: 0,
+          salary_min: currentVacancy.salary_from || null,
+          salary_max: currentVacancy.salary_to || null,
+          work_format: currentVacancy.format,
+          work_schedule: currentVacancy.vacancy_data?.workload || 'full',
+          requirements: currentVacancy.vacancy_data?.requirements || '',
+          responsibilities: currentVacancy.vacancy_data?.responsibilities || '',
+          status: currentVacancy.status,
+          slug: currentVacancy.public_link || currentVacancy.id,
+          created_at: currentVacancy.created_at,
+          updated_at: currentVacancy.updated_at,
+        });
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -158,36 +141,23 @@ export function VacancyDashboard() {
 
   const updateCandidateStatus = async (candidateId: string, status: string) => {
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         navigate('/login');
         return;
       }
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-reject-candidate/api/vacancies/${vacancyId}/candidates/${candidateId}/update_status`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            status: status,
-          }),
-        }
+      await apiPost<{ success: boolean; message?: string }>(
+        `/api/v2/vacancies/candidates/update_status`,
+        { vacancy_id: vacancyId, 
+          candidate_id: candidateId, 
+          status: status }
       );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to update status');
-      }
 
       await loadData();
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Не удалось обновить статус кандидата. Попробуйте еще раз.');
+      alert(error instanceof Error ? error.message : 'Не удалось обновить статус кандидата. Попробуйте еще раз.');
     }
   };
 
@@ -206,7 +176,7 @@ export function VacancyDashboard() {
   const handleRejectCandidate = async () => {
     if (!rejectingCandidate || !vacancyId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       alert('Не удалось получить данные пользователя');
       return;
@@ -220,31 +190,20 @@ export function VacancyDashboard() {
     try {
       setIsRejecting(true);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-reject-candidate/api/vacancies/${vacancyId}/candidates/${rejectingCandidate.id}/reject`,
+      await apiPost<{ success: boolean; message?: string }>(
+        `/api/v2/vacancies/candidates/reject`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            comment: rejectComment.trim(),
-          }),
+          vacancy_id: vacancyId,
+          candidate_id: rejectingCandidate.id,
+          comment: rejectComment.trim(),
         }
       );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to reject candidate');
-      }
 
       closeRejectModal();
       await loadData();
     } catch (error) {
       console.error('Failed to reject candidate:', error);
-      alert('Не удалось отклонить кандидата. Попробуйте еще раз.');
+      alert(error instanceof Error ? error.message : 'Не удалось отклонить кандидата. Попробуйте еще раз.');
     } finally {
       setIsRejecting(false);
     }
@@ -269,7 +228,7 @@ export function VacancyDashboard() {
   const handleOpenChat = () => {
     if (!vacancyId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       navigate('/login');
       return;
@@ -289,7 +248,7 @@ export function VacancyDashboard() {
   const handleDeleteVacancy = async () => {
     if (!vacancy || !vacancyId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       alert('Не удалось получить данные пользователя');
       return;
@@ -298,29 +257,14 @@ export function VacancyDashboard() {
     try {
       setDeletingVacancy(true);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-delete-vacancy/api/vacancies/${vacancyId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to delete vacancy');
-      }
+      await apiDelete<{ success: boolean; message?: string }>(`/api/v2/vacancies`, {
+        vacancy_id: vacancyId,
+      });
 
       navigate('/recruiter');
     } catch (error) {
       console.error('Failed to delete vacancy:', error);
-      alert('Не удалось удалить вакансию. Попробуйте еще раз.');
+      alert(error instanceof Error ? error.message : 'Не удалось удалить вакансию. Попробуйте еще раз.');
     } finally {
       setDeletingVacancy(false);
     }
@@ -329,7 +273,7 @@ export function VacancyDashboard() {
   const handleUpdateVacancyStatus = async (newStatus: 'published' | 'closed') => {
     if (!vacancyId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       alert('Не удалось получить данные пользователя');
       return;
@@ -338,30 +282,20 @@ export function VacancyDashboard() {
     try {
       setUpdatingVacancyStatus(true);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            status: newStatus,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to update vacancy status');
-      }
+      await apiPatch<{ success: boolean; message?: string }>(`/api/v2/vacancies`, {
+        vacancy_id: vacancyId,
+        status: newStatus,
+        vacancy_data: {},
+        extended_data: {
+          type: 'manual',
+          is_ready: true,
+        },
+      });
 
       await loadData();
     } catch (error) {
       console.error('Failed to update vacancy status:', error);
-      alert('Не удалось изменить статус вакансии');
+      alert(error instanceof Error ? error.message : 'Не удалось изменить статус вакансии');
     } finally {
       setUpdatingVacancyStatus(false);
     }
@@ -370,7 +304,7 @@ export function VacancyDashboard() {
   const handleDownloadCV = async (candidateId: string, candidateName: string) => {
     if (!vacancyId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       alert('Не удалось получить данные пользователя');
       return;
@@ -379,18 +313,14 @@ export function VacancyDashboard() {
     try {
       setDownloadingCVId(candidateId);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-get-candidate-details/api/getcv/${vacancyId}/candidates/${candidateId}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-          }),
-        }
-      );
+      const response = await apiFetch(`/api/v2/getcv/candidates`, {
+        method: 'POST',
+        body: JSON.stringify({
+          vacancy_id: vacancyId,
+          candidate_id: candidateId,
+          user_id: userId,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error('Failed to download CV');
@@ -407,7 +337,7 @@ export function VacancyDashboard() {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Failed to download CV:', error);
-      alert('Не удалось скачать CV');
+      alert(error instanceof Error ? error.message : 'Не удалось скачать CV');
     } finally {
       setDownloadingCVId(null);
     }
@@ -416,7 +346,7 @@ export function VacancyDashboard() {
   const handlePublishVacancy = async () => {
     if (!vacancyId) return;
 
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
     if (!userId) {
       alert('Не удалось получить данные пользователя');
       return;
@@ -425,29 +355,14 @@ export function VacancyDashboard() {
     try {
       setPublishingVacancy(true);
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-vacancy-publish/api/vacancies/${vacancyId}/publish`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to publish vacancy');
-      }
+      await apiPost<{ success: boolean; message?: string }>(`/api/v2/vacancies/publish`, {
+        vacancy_id: vacancyId,
+      });
 
       await loadData();
     } catch (error) {
       console.error('Failed to publish vacancy:', error);
-      alert('Не удалось опубликовать вакансию');
+      alert(error instanceof Error ? error.message : 'Не удалось опубликовать вакансию');
     } finally {
       setPublishingVacancy(false);
     }

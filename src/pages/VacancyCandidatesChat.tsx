@@ -4,6 +4,8 @@ import { Card, CardContent } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft, Sparkles } from 'lucide-react';
+import { apiFetch } from '../lib/api';
+import { getUserId } from '../lib/auth';
 
 interface Message {
   role: 'assistant' | 'user';
@@ -26,7 +28,7 @@ export function VacancyCandidatesChat() {
   }, []);
 
   const sendInitialMessage = async () => {
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
 
     if (!userId) {
       navigate('/login');
@@ -60,18 +62,17 @@ export function VacancyCandidatesChat() {
   };
 
   const sendMessageToAPI = async (message: string, userId: string, vacancyId: string) => {
-    const apiUrl = `https://nomira-ai-test.up.railway.app/webhook/82aa583e-af84-4dde-87ce-1b924752ff1e/api/vacancies/${vacancyId}/ai-candidates-chat`;
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        message: message,
-      }),
-    });
+    const response = await apiFetch(
+      `/api/v2/vacancies/candidates/ai-chat`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          vacancy_id: vacancyId,
+          user_id: userId,
+          question: message,
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Ошибка при получении ответа от сервера');
@@ -146,7 +147,7 @@ export function VacancyCandidatesChat() {
   };
 
   const handleSendMessage = async (content: string) => {
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
 
     if (!userId) {
       navigate('/login');

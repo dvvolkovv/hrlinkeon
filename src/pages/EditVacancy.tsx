@@ -7,6 +7,8 @@ import { Textarea } from '../components/ui/Textarea';
 import { RichTextEditor } from '../components/ui/RichTextEditor';
 import { Button } from '../components/ui/Button';
 import { Edit3, ArrowLeft } from 'lucide-react';
+import { apiPost, apiPatch } from '../lib/api';
+import { getUserId } from '../lib/auth';
 
 interface VacancyForm {
   title: string;
@@ -82,25 +84,13 @@ export function EditVacancy() {
 
   const loadVacancy = async () => {
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         navigate('/login');
         return;
       }
 
-      const response = await fetch('https://nomira-ai-test.up.railway.app/webhook/api/vacancies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: userId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch vacancy');
-      }
-
-      const result = await response.json();
+      const result = await apiPost<{ success: boolean; data: any[] }>('/api/v2/vacancies', {});
       const vacancies = result.data || [];
       const vacancy = vacancies.find((v: any) => v.id === vacancyId);
 
@@ -155,7 +145,7 @@ export function EditVacancy() {
     setSuccess(null);
 
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         navigate('/login');
         return;
@@ -207,7 +197,7 @@ export function EditVacancy() {
       }
 
       const payload = {
-        user_id: userId,
+        vacancy_id: vacancyId,
         vacancy_data: {
           title: form.title,
           department: form.department,
@@ -225,17 +215,7 @@ export function EditVacancy() {
         extended_data: extendedData,
       };
 
-      const response = await fetch(`https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-update-vacancy/api/vacancies/${vacancyId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update vacancy');
-      }
+      await apiPatch<{ success: boolean }>(`/api/v2/vacancies`, payload);
 
       setSuccess('Изменения успешно сохранены');
       window.scrollTo({ top: 0, behavior: 'smooth' });

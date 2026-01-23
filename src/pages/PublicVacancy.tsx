@@ -8,6 +8,7 @@ import { CandidateApplicationForm } from '../components/CandidateApplicationForm
 import { Briefcase, MapPin, Clock, DollarSign, Calendar, Send, Award } from 'lucide-react';
 import { mockStorage } from '../lib/mockData';
 import { Vacancy } from '../types/database';
+import { apiGet } from '../lib/api';
 
 interface PublicVacancyResponse {
   success: boolean;
@@ -79,21 +80,7 @@ export function PublicVacancy() {
         return;
       }
 
-      const response = await fetch(
-        `https://nomira-ai-test.up.railway.app/webhook/hrlinkeon-public-vacancy/public/vacancies/${publicLink}`
-      );
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          setVacancy(null);
-        } else {
-          throw new Error('Failed to load vacancy');
-        }
-        setLoading(false);
-        return;
-      }
-
-      const data: PublicVacancyResponse = await response.json();
+      const data = await apiGet<PublicVacancyResponse>(`/public/vacancies/${publicLink}`, { skipAuth: true });
 
       if (!data.success) {
         setVacancy(null);
@@ -110,8 +97,8 @@ export function PublicVacancy() {
         experience_years: extractYearsFromExperience(data.experience),
         salary_min: data.salary_from || null,
         salary_max: data.salary_to || null,
-        work_format: data.format,
-        work_schedule: data.workload,
+        work_format: data.format === 'flexible' ? 'remote' : (data.format as 'remote' | 'hybrid' | 'office'),
+        work_schedule: (data.workload === 'full-time' ? 'full' : data.workload === 'part-time' ? 'part' : data.workload) as 'full' | 'part',
         requirements: data.requirements,
         responsibilities: data.responsibilities,
         status: 'published',

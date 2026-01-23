@@ -4,6 +4,8 @@ import { Card } from '../components/ui/Card';
 import { AIChat } from '../components/AIChat';
 import { Button } from '../components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
+import { apiFetch } from '../lib/api';
+import { getUserId } from '../lib/auth';
 
 interface Message {
   role: 'assistant' | 'user';
@@ -30,7 +32,7 @@ export function CandidateAIChat() {
   }, []);
 
   const sendInitialMessage = async () => {
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
 
     if (!userId) {
       navigate('/login');
@@ -64,15 +66,11 @@ export function CandidateAIChat() {
   };
 
   const sendMessageToAPI = async (message: string, userId: string) => {
-    const apiUrl = `https://nomira-ai-test.up.railway.app/webhook/82aa583e-af84-4dde-87ce-1b924752ff1e/api/vacancies/${vacancyId}/candidates/${candidateId}/ai-chat`;
-
-    const response = await fetch(apiUrl, {
+    const response = await apiFetch(`/api/v2/vacancies/candidates/ai-chat`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({
-        user_id: userId,
+        vacancy_id: vacancyId,
+        candidate_id: candidateId,
         question: message,
       }),
     });
@@ -150,7 +148,7 @@ export function CandidateAIChat() {
   };
 
   const handleSendMessage = async (content: string) => {
-    const userId = localStorage.getItem('user_id');
+    const userId = getUserId();
 
     if (!userId) {
       navigate('/login');

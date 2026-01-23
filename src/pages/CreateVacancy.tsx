@@ -8,6 +8,8 @@ import { RichTextEditor } from '../components/ui/RichTextEditor';
 import { Button } from '../components/ui/Button';
 import { mockStorage } from '../lib/mockData';
 import { Briefcase, FileText, Edit3, Upload, Link as LinkIcon } from 'lucide-react';
+import { apiPost, apiFetch } from '../lib/api';
+import { getUserId } from '../lib/auth';
 
 interface VacancyForm {
   title: string;
@@ -155,24 +157,22 @@ export function CreateVacancy() {
     setError(null);
 
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         setError('Пользователь не авторизован');
         navigate('/login');
         return;
       }
 
-      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
-      if (!hrLinkeonUrl) {
-        throw new Error('HR Linkeon URL не настроен');
-      }
-
       const formData = new FormData();
       formData.append('document', uploadedFile);
       formData.append('user_id', userId);
 
-      const response = await fetch(`${hrLinkeonUrl}/webhook/hrcscan`, {
+      const response = await apiFetch('/api/v2/hrcscan', {
         method: 'POST',
+        headers: {
+          // Не добавляем Content-Type, браузер сам установит с boundary для FormData
+        },
         body: formData,
       });
 
@@ -202,20 +202,7 @@ export function CreateVacancy() {
 
   const loadVacancyData = async (vacancyId: string, userId: string) => {
     try {
-      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
-      const response = await fetch(`${hrLinkeonUrl}/webhook/api/vacancies`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: userId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Не удалось загрузить данные вакансии');
-      }
-
-      const result = await response.json();
+      const result = await apiPost<{ success: boolean; data: any[] }>('/api/v2/vacancies', {});
       const vacancies = result.data || [];
       const vacancy = vacancies.find((v: any) => v.id === vacancyId);
 
@@ -284,7 +271,7 @@ export function CreateVacancy() {
     setError(null);
 
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         setError('Пользователь не авторизован');
         navigate('/login');
@@ -335,39 +322,26 @@ export function CreateVacancy() {
         };
       }
 
-      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
-      const response = await fetch(
-        `${hrLinkeonUrl}/webhook/hrlinkeon-update-vacancy/api/vacancies/${currentVacancyId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: userId,
-            title: form.title,
-            department: form.department,
-            level: form.level,
-            salary_from: form.salary_min ? Number(form.salary_min) : null,
-            salary_to: form.salary_max ? Number(form.salary_max) : null,
-            format: form.work_format,
-            vacancy_data: {
-              experience_years: Number(form.experience_years),
-              workload: form.work_schedule,
-              requirements: form.requirements,
-              responsibilities: form.responsibilities,
-              description: form.description,
-              benefits: form.benefits,
-              experience: form.experience,
-            },
-            extended_data: extendedData,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Не удалось обновить вакансию');
-      }
+      await apiPatch<{ success: boolean }>(`/api/v2/vacancies/${currentVacancyId}`, {
+        user_id: userId,
+        status: 'draft',
+        title: form.title,
+        department: form.department,
+        level: form.level,
+        salary_from: form.salary_min ? Number(form.salary_min) : null,
+        salary_to: form.salary_max ? Number(form.salary_max) : null,
+        format: form.work_format,
+        vacancy_data: {
+          experience_years: Number(form.experience_years),
+          workload: form.work_schedule,
+          requirements: form.requirements,
+          responsibilities: form.responsibilities,
+          description: form.description,
+          benefits: form.benefits,
+          experience: form.experience,
+        },
+        extended_data: extendedData,
+      });
 
       navigate(`/vacancy/${currentVacancyId}/profiling`);
     } catch (err) {
@@ -388,33 +362,23 @@ export function CreateVacancy() {
     setError(null);
 
     try {
-      const userId = localStorage.getItem('user_id');
+      const userId = getUserId();
       if (!userId) {
         setError('Пользователь не авторизован');
         navigate('/login');
         return;
       }
 
-      const response = await fetch(
-        'https://nomira-ai-test.up.railway.app/webhook/vacancy/urlscan',
+      const responseData = await apiPost<{ success: boolean; vacancy_id?: string; vacancy_data?: any; extended_data?: any; error?: string }>(
+        '/api/v2/vacancy/urlscan',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: vacancyUrl.trim(),
-            user_id: userId,
-          }),
+          url: vacancyUrl.trim(),
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Ошибка при импорте вакансии');
+      if (!responseData.success) {
+        throw new Error(responseData.error || 'Ошибка при импорте вакансии');
       }
-
-      const responseData = await response.json();
 
       if (!responseData.vacancy_id) {
         throw new Error('Некорректный формат ответа от сервера');

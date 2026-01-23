@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Shield, ArrowLeft, Loader } from 'lucide-react';
+import { saveTokens, saveRecruiterPhone } from '../lib/auth';
+import { apiPost } from '../lib/api';
 
 export function VerifyCode() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -83,39 +85,108 @@ export function VerifyCode() {
     setError('');
 
     try {
-      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
+      const data = await apiPost<any>(
+        '/api/v2/auth/verify-code',
+        { phone, code: codeString },
+        { skipAuth: true }
+      );
 
-      if (!hrLinkeonUrl) {
-        throw new Error('HR Linkeon URL не настроен');
+      console.log('Verify response:', { data });
+
+      if (data.error) {
+        throw new Error(data.error || data.message || 'Неверный код');
       }
 
-      const verifyUrl = `${hrLinkeonUrl}/webhook/api/auth/verify-code`;
-
-      const response = await fetch(verifyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone, code: codeString }),
-      });
-
-      const data = await response.json();
-
-      console.log('Verify response:', { status: response.status, data });
-
-      if (data.user_id) {
+      // Обработка успешного ответа с токенами
+      // Формат 1: { success: true, data: { access_token, refresh_token, user_id } }
+      if (data.success && data.data) {
+        const tokenData = data.data;
+        
+        // Сохраняем токены и данные пользователя
+        saveTokens({
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          user_id: tokenData.user_id,
+        });
+        
+        // Сохраняем номер телефона
+        saveRecruiterPhone(phone);
+        
         console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone}`);
-        localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('recruiter_phone', phone);
+        
         navigate('/recruiter');
         return;
       }
 
-      if (!response.ok || data.error) {
-        throw new Error(data.error || 'Неверный код');
+      // Формат 2: { "access-token": "...", "refresh-token": "..." } (с дефисами)
+      if (data['access-token'] && data['refresh-token']) {
+        const accessToken = data['access-token'];
+        const refreshToken = data['refresh-token'];
+        
+        // Извлекаем user_id из access token
+        let userId: string | undefined;
+        try {
+          const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
+          userId = tokenPayload.user_id;
+        } catch (e) {
+          console.warn('Не удалось извлечь user_id из токена:', e);
+        }
+        
+        // Сохраняем токены и данные пользователя
+        saveTokens({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          user_id: userId,
+        });
+        
+        // Сохраняем номер телефона
+        saveRecruiterPhone(phone);
+        
+        console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone}`);
+        
+        navigate('/recruiter');
+        return;
       }
 
-      throw new Error('user_id не получен от сервера');
+      // Формат 3: { access_token: "...", refresh_token: "..." } (с подчеркиваниями)
+      if (data.access_token && data.refresh_token) {
+        // Извлекаем user_id из access token если не пришел в ответе
+        let userId = data.user_id;
+        if (!userId) {
+          try {
+            const tokenPayload = JSON.parse(atob(data.access_token.split('.')[1]));
+            userId = tokenPayload.user_id;
+          } catch (e) {
+            console.warn('Не удалось извлечь user_id из токена:', e);
+          }
+        }
+        
+        saveTokens({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          user_id: userId,
+        });
+        
+        saveRecruiterPhone(phone);
+        
+        console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone}`);
+        
+        navigate('/recruiter');
+        return;
+      }
+
+      // Обратная совместимость - если структура ответа старая
+      if (data.user_id) {
+        console.log(`[SUCCESS] Код ${codeString} подтвержден для ${phone} (legacy format)`);
+        saveTokens({
+          user_id: data.user_id,
+        });
+        saveRecruiterPhone(phone);
+        navigate('/recruiter');
+        return;
+      }
+
+      throw new Error('Токены не получены от сервера');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка при проверке кода');
       setCode(['', '', '', '', '', '']);
@@ -132,27 +203,11 @@ export function VerifyCode() {
     setError('');
 
     try {
-      const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
-
-      if (!hrLinkeonUrl) {
-        throw new Error('HR Linkeon URL не настроен');
-      }
-
-      const sendCodeUrl = `${hrLinkeonUrl}/webhook/api/auth/send-code`;
-
-      const response = await fetch(sendCodeUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Ошибка отправки кода');
-      }
+      await apiPost<{ success: boolean; error?: string }>(
+        '/api/v2/auth/send-code',
+        { phone },
+        { skipAuth: true }
+      );
 
       console.log(`[SUCCESS] Повторная отправка SMS кода для ${phone}`);
 
