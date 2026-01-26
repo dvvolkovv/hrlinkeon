@@ -634,26 +634,26 @@ export function VacancyDashboard() {
 
         <Card>
           <CardHeader>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-xl font-semibold text-gray-900 whitespace-nowrap">
                   Кандидаты 
                   <span className="ml-2 text-sm font-normal text-gray-500">
                     ({filteredCandidates.length} из {stats.total})
                   </span>
                 </h2>
                 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex items-center gap-2 overflow-x-auto">
                   {/* Фильтры по статусу */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5">
                     <Button
                       size="sm"
                       variant={filterStatus === 'all' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('all')}
-                      className="flex items-center gap-1.5"
+                      className="flex items-center gap-1 whitespace-nowrap"
                     >
                       <span>Все</span>
-                      <Badge variant="info" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                      <Badge variant="info" className="text-xs px-1 py-0.5">
                         {stats.total}
                       </Badge>
                     </Button>
@@ -661,11 +661,11 @@ export function VacancyDashboard() {
                       size="sm"
                       variant={filterStatus === 'new' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('new')}
-                      className="flex items-center gap-1.5"
+                      className="flex items-center gap-1 whitespace-nowrap"
                     >
                       <span>Новые</span>
                       {stats.new > 0 && (
-                        <Badge variant="info" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                        <Badge variant="info" className="text-xs px-1 py-0.5">
                           {stats.new}
                         </Badge>
                       )}
@@ -674,11 +674,11 @@ export function VacancyDashboard() {
                       size="sm"
                       variant={filterStatus === 'screening' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('screening')}
-                      className="flex items-center gap-1.5"
+                      className="flex items-center gap-1 whitespace-nowrap"
                     >
                       <span>Скрининг</span>
                       {stats.screening > 0 && (
-                        <Badge variant="warning" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                        <Badge variant="warning" className="text-xs px-1 py-0.5">
                           {stats.screening}
                         </Badge>
                       )}
@@ -687,11 +687,11 @@ export function VacancyDashboard() {
                       size="sm"
                       variant={filterStatus === 'interviewed' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('interviewed')}
-                      className="flex items-center gap-1.5"
+                      className="flex items-center gap-1 whitespace-nowrap"
                     >
                       <span>Интервью</span>
                       {stats.interviewed > 0 && (
-                        <Badge variant="primary" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                        <Badge variant="primary" className="text-xs px-1 py-0.5">
                           {stats.interviewed}
                         </Badge>
                       )}
@@ -700,11 +700,11 @@ export function VacancyDashboard() {
                       size="sm"
                       variant={filterStatus === 'accepted' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('accepted')}
-                      className="flex items-center gap-1.5"
+                      className="flex items-center gap-1 whitespace-nowrap"
                     >
                       <span>Предложение</span>
                       {stats.accepted > 0 && (
-                        <Badge variant="success" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                        <Badge variant="success" className="text-xs px-1 py-0.5">
                           {stats.accepted}
                         </Badge>
                       )}
@@ -713,37 +713,38 @@ export function VacancyDashboard() {
                       size="sm"
                       variant={filterStatus === 'reserve' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('reserve')}
-                      className="flex items-center gap-1.5"
+                      className="flex items-center gap-1 whitespace-nowrap"
                     >
                       <span>Резерв</span>
                       {stats.reserve > 0 && (
-                        <Badge variant="warning" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                        <Badge variant="warning" className="text-xs px-1 py-0.5">
                           {stats.reserve}
                         </Badge>
                       )}
                     </Button>
                   </div>
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 border-l border-gray-300 pl-2">
                     {/* Фильтр "Профиль готов" */}
                     <Button
                       size="sm"
                       variant={filterProfileReady === true ? 'primary' : 'outline'}
                       onClick={() => setFilterProfileReady(filterProfileReady === true ? null : true)}
-                      className={`flex items-center gap-1.5 ${filterProfileReady === true ? 'bg-green-600 hover:bg-green-700 border-green-600' : ''}`}
+                      className={`flex items-center gap-1 whitespace-nowrap ${filterProfileReady === true ? 'bg-green-600 hover:bg-green-700 border-green-600' : ''}`}
                     >
                       <Check className="w-3.5 h-3.5" />
-                      <span>Профиль готов</span>
+                      <span className="hidden sm:inline">Профиль готов</span>
+                      <span className="sm:hidden">Готов</span>
                       {stats.profileReady > 0 && (
-                        <Badge variant="success" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                        <Badge variant="success" className="text-xs px-1 py-0.5">
                           {stats.profileReady}
                         </Badge>
                       )}
                     </Button>
                     
                     {/* Сортировка */}
-                    <div className="flex items-center gap-2 min-w-[180px]">
-                      <ArrowUpDown className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5">
+                      <ArrowUpDown className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
                       <Select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as SortType)}
@@ -753,7 +754,7 @@ export function VacancyDashboard() {
                           { value: 'score_desc', label: 'Скоринг ↓' },
                           { value: 'score_asc', label: 'Скоринг ↑' },
                         ]}
-                        className="text-sm py-1.5"
+                        className="text-sm py-1 w-32"
                       />
                     </div>
                   </div>
