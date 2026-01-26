@@ -860,12 +860,10 @@ export function VacancyDashboard() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => navigate(`/candidate/${candidate.id}/ai-chat`, {
-                          state: {
-                            vacancyId: vacancyId,
-                            candidateName: candidate.name
-                          }
-                        })}
+                        onClick={() => {
+                          const url = `/candidate/${candidate.id}/ai-chat?vacancyId=${vacancyId}&candidateName=${encodeURIComponent(candidate.name)}`;
+                          window.open(url, '_blank');
+                        }}
                         className="whitespace-nowrap gap-1.5 bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200 text-primary-700 hover:from-primary-100 hover:to-primary-200"
                       >
                         <Sparkles className="w-3.5 h-3.5" />

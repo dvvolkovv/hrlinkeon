@@ -17,8 +17,11 @@ export function CandidateAIChat() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const vacancyId = location.state?.vacancyId;
-  const candidateName = location.state?.candidateName;
+  
+  // Получаем параметры из URL query string или из location.state
+  const searchParams = new URLSearchParams(location.search);
+  const vacancyId = searchParams.get('vacancyId') || location.state?.vacancyId;
+  const candidateName = searchParams.get('candidateName') || location.state?.candidateName;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
