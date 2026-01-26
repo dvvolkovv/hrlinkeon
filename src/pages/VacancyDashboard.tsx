@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
 import { apiPost, apiDelete, apiPatch, apiFetch } from '../lib/api';
 import { getUserId } from '../lib/auth';
@@ -451,6 +452,9 @@ export function VacancyDashboard() {
     new: candidates.filter(c => c.status === 'new').length,
     screening: candidates.filter(c => c.status === 'screening').length,
     interviewed: candidates.filter(c => c.status === 'interviewed').length,
+    accepted: candidates.filter(c => c.status === 'accepted').length,
+    reserve: candidates.filter(c => c.status === 'reserve').length,
+    profileReady: candidates.filter(c => c.profile_is_ready).length,
   };
 
   if (loading) {
@@ -631,100 +635,128 @@ export function VacancyDashboard() {
         <Card>
           <CardHeader>
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold text-gray-900">Кандидаты</h2>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Кандидаты 
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    ({filteredCandidates.length} из {stats.total})
+                  </span>
+                </h2>
+                
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  {/* Фильтры по статусу */}
                   <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant={filterStatus === 'all' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('all')}
+                      className="flex items-center gap-1.5"
                     >
-                      Все
+                      <span>Все</span>
+                      <Badge variant="info" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                        {stats.total}
+                      </Badge>
                     </Button>
                     <Button
                       size="sm"
                       variant={filterStatus === 'new' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('new')}
+                      className="flex items-center gap-1.5"
                     >
-                      Новые
+                      <span>Новые</span>
+                      {stats.new > 0 && (
+                        <Badge variant="info" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                          {stats.new}
+                        </Badge>
+                      )}
                     </Button>
                     <Button
                       size="sm"
                       variant={filterStatus === 'screening' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('screening')}
+                      className="flex items-center gap-1.5"
                     >
-                      Скрининг
+                      <span>Скрининг</span>
+                      {stats.screening > 0 && (
+                        <Badge variant="warning" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                          {stats.screening}
+                        </Badge>
+                      )}
                     </Button>
                     <Button
                       size="sm"
                       variant={filterStatus === 'interviewed' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('interviewed')}
+                      className="flex items-center gap-1.5"
                     >
-                      Интервью
+                      <span>Интервью</span>
+                      {stats.interviewed > 0 && (
+                        <Badge variant="primary" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                          {stats.interviewed}
+                        </Badge>
+                      )}
                     </Button>
                     <Button
                       size="sm"
                       variant={filterStatus === 'accepted' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('accepted')}
+                      className="flex items-center gap-1.5"
                     >
-                      Предложение
+                      <span>Предложение</span>
+                      {stats.accepted > 0 && (
+                        <Badge variant="success" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                          {stats.accepted}
+                        </Badge>
+                      )}
                     </Button>
                     <Button
                       size="sm"
                       variant={filterStatus === 'reserve' ? 'primary' : 'outline'}
                       onClick={() => setFilterStatus('reserve')}
+                      className="flex items-center gap-1.5"
                     >
-                      Резерв
+                      <span>Резерв</span>
+                      {stats.reserve > 0 && (
+                        <Badge variant="warning" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                          {stats.reserve}
+                        </Badge>
+                      )}
                     </Button>
                   </div>
-                  <div className="flex gap-2 border-l pl-2">
+                  
+                  <div className="flex items-center gap-3">
+                    {/* Фильтр "Профиль готов" */}
                     <Button
                       size="sm"
-                      variant={filterProfileReady === null ? 'outline' : 'primary'}
+                      variant={filterProfileReady === true ? 'primary' : 'outline'}
                       onClick={() => setFilterProfileReady(filterProfileReady === true ? null : true)}
-                      className={filterProfileReady === true ? 'bg-green-600 hover:bg-green-700' : ''}
+                      className={`flex items-center gap-1.5 ${filterProfileReady === true ? 'bg-green-600 hover:bg-green-700 border-green-600' : ''}`}
                     >
-                      <Check className="w-3.5 h-3.5 mr-1" />
-                      Профиль готов
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Готов</span>
+                      {stats.profileReady > 0 && (
+                        <Badge variant="success" className="text-xs px-1.5 py-0.5 min-w-[20px]">
+                          {stats.profileReady}
+                        </Badge>
+                      )}
                     </Button>
+                    
+                    {/* Сортировка */}
+                    <div className="flex items-center gap-2 min-w-[180px]">
+                      <ArrowUpDown className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                      <Select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as SortType)}
+                        options={[
+                          { value: 'date_desc', label: 'Дата ↓' },
+                          { value: 'date_asc', label: 'Дата ↑' },
+                          { value: 'score_desc', label: 'Скоринг ↓' },
+                          { value: 'score_asc', label: 'Скоринг ↑' },
+                        ]}
+                        className="text-sm py-1.5"
+                      />
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700">Сортировка:</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant={sortBy === 'date_desc' ? 'primary' : 'outline'}
-                    onClick={() => setSortBy('date_desc')}
-                  >
-                    Дата: новые
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={sortBy === 'date_asc' ? 'primary' : 'outline'}
-                    onClick={() => setSortBy('date_asc')}
-                  >
-                    Дата: старые
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={sortBy === 'score_desc' ? 'primary' : 'outline'}
-                    onClick={() => setSortBy('score_desc')}
-                  >
-                    Скоринг: высокий
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={sortBy === 'score_asc' ? 'primary' : 'outline'}
-                    onClick={() => setSortBy('score_asc')}
-                  >
-                    Скоринг: низкий
-                  </Button>
                 </div>
               </div>
             </div>
