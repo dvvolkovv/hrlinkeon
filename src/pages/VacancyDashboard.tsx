@@ -60,8 +60,22 @@ export function VacancyDashboard() {
   const [vacancy, setVacancy] = useState<Vacancy | null>(null);
   const [candidates, setCandidates] = useState<ApiCandidate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<SortType>('date_desc');
+  
+  // Восстанавливаем фильтры из localStorage
+  const [filterStatus, setFilterStatus] = useState<string>(() => {
+    const saved = localStorage.getItem(`vacancy_${vacancyId}_filterStatus`);
+    return saved || 'all';
+  });
+  const [filterProfileReady, setFilterProfileReady] = useState<boolean | null>(() => {
+    const saved = localStorage.getItem(`vacancy_${vacancyId}_filterProfileReady`);
+    if (saved === null || saved === 'null') return null;
+    return JSON.parse(saved);
+  });
+  const [sortBy, setSortBy] = useState<SortType>(() => {
+    const saved = localStorage.getItem(`vacancy_${vacancyId}_sortBy`);
+    return (saved as SortType) || 'date_desc';
+  });
+  
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingCandidate, setRejectingCandidate] = useState<ApiCandidate | null>(null);
   const [rejectComment, setRejectComment] = useState('');
@@ -76,6 +90,25 @@ export function VacancyDashboard() {
   useEffect(() => {
     loadData();
   }, [vacancyId]);
+
+  // Сохраняем фильтры в localStorage при их изменении
+  useEffect(() => {
+    if (vacancyId) {
+      localStorage.setItem(`vacancy_${vacancyId}_filterStatus`, filterStatus);
+    }
+  }, [filterStatus, vacancyId]);
+
+  useEffect(() => {
+    if (vacancyId) {
+      localStorage.setItem(`vacancy_${vacancyId}_filterProfileReady`, JSON.stringify(filterProfileReady));
+    }
+  }, [filterProfileReady, vacancyId]);
+
+  useEffect(() => {
+    if (vacancyId) {
+      localStorage.setItem(`vacancy_${vacancyId}_sortBy`, sortBy);
+    }
+  }, [sortBy, vacancyId]);
 
   const loadData = async () => {
     try {
@@ -403,7 +436,13 @@ export function VacancyDashboard() {
   };
 
   const filteredCandidates = sortCandidates(
-    filterStatus === 'all' ? candidates : candidates.filter(c => c.status === filterStatus),
+    candidates.filter(c => {
+      // Фильтр по статусу
+      const statusMatch = filterStatus === 'all' || c.status === filterStatus;
+      // Фильтр по готовности профиля
+      const profileReadyMatch = filterProfileReady === null || c.profile_is_ready === filterProfileReady;
+      return statusMatch && profileReadyMatch;
+    }),
     sortBy
   );
 
@@ -592,30 +631,43 @@ export function VacancyDashboard() {
         <Card>
           <CardHeader>
             <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold text-gray-900">Кандидаты</h2>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant={filterStatus === 'all' ? 'primary' : 'outline'}
-                    onClick={() => setFilterStatus('all')}
-                  >
-                    Все
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={filterStatus === 'new' ? 'primary' : 'outline'}
-                    onClick={() => setFilterStatus('new')}
-                  >
-                    Новые
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={filterStatus === 'screening' ? 'primary' : 'outline'}
-                    onClick={() => setFilterStatus('screening')}
-                  >
-                    Скрининг
-                  </Button>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={filterStatus === 'all' ? 'primary' : 'outline'}
+                      onClick={() => setFilterStatus('all')}
+                    >
+                      Все
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterStatus === 'new' ? 'primary' : 'outline'}
+                      onClick={() => setFilterStatus('new')}
+                    >
+                      Новые
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterStatus === 'screening' ? 'primary' : 'outline'}
+                      onClick={() => setFilterStatus('screening')}
+                    >
+                      Скрининг
+                    </Button>
+                  </div>
+                  <div className="flex gap-2 border-l pl-2">
+                    <Button
+                      size="sm"
+                      variant={filterProfileReady === null ? 'outline' : 'primary'}
+                      onClick={() => setFilterProfileReady(filterProfileReady === true ? null : true)}
+                      className={filterProfileReady === true ? 'bg-green-600 hover:bg-green-700' : ''}
+                    >
+                      <Check className="w-3.5 h-3.5 mr-1" />
+                      Профиль готов
+                    </Button>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
