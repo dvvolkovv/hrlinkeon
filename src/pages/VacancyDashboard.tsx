@@ -733,7 +733,7 @@ export function VacancyDashboard() {
                       className={`flex items-center gap-1.5 ${filterProfileReady === true ? 'bg-green-600 hover:bg-green-700 border-green-600' : ''}`}
                     >
                       <Check className="w-3.5 h-3.5" />
-                      <span>Готов</span>
+                      <span>Профиль готов</span>
                       {stats.profileReady > 0 && (
                         <Badge variant="success" className="text-xs px-1.5 py-0.5 min-w-[20px]">
                           {stats.profileReady}
