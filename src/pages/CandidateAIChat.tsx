@@ -23,15 +23,40 @@ export function CandidateAIChat() {
   const vacancyId = searchParams.get('vacancyId') || location.state?.vacancyId;
   const candidateName = searchParams.get('candidateName') || location.state?.candidateName;
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Загружаем историю из localStorage при инициализации
+    if (candidateId && vacancyId) {
+      const storageKey = `ai_chat_${vacancyId}_${candidateId}`;
+      const savedMessages = localStorage.getItem(storageKey);
+      if (savedMessages) {
+        try {
+          return JSON.parse(savedMessages);
+        } catch (e) {
+          console.error('Failed to parse saved messages:', e);
+        }
+      }
+    }
+    return [];
+  });
   const [isProcessing, setIsProcessing] = useState(false);
   const isInitialized = useRef(false);
+
+  // Сохраняем историю в localStorage при каждом изменении
+  useEffect(() => {
+    if (candidateId && vacancyId && messages.length > 0) {
+      const storageKey = `ai_chat_${vacancyId}_${candidateId}`;
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    }
+  }, [messages, candidateId, vacancyId]);
 
   useEffect(() => {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    sendInitialMessage();
+    // Отправляем начальное сообщение только если истории нет
+    if (messages.length === 0) {
+      sendInitialMessage();
+    }
   }, []);
 
   const sendInitialMessage = async () => {
