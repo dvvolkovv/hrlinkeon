@@ -45,6 +45,7 @@ interface ApiCandidate {
   status: string;
   status_label: string;
   comments: string | null;
+  comments_hr: string | null;
   resume_file_path: string | null;
   github_link: string | null;
   portfolio_link: string | null;
@@ -112,10 +113,20 @@ export function CandidateDetails() {
   const [rejectComment, setRejectComment] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
   const [downloadingCV, setDownloadingCV] = useState(false);
+  const [hrComments, setHrComments] = useState('');
+  const [isEditingComments, setIsEditingComments] = useState(false);
+  const [isSavingComments, setIsSavingComments] = useState(false);
 
   useEffect(() => {
     loadCandidateData();
   }, [candidateId]);
+
+  // Инициализация комментариев рекрутера
+  useEffect(() => {
+    if (data?.candidate?.comments_hr) {
+      setHrComments(data.candidate.comments_hr);
+    }
+  }, [data]);
 
   const loadCandidateData = async () => {
     try {
@@ -257,6 +268,37 @@ export function CandidateDetails() {
       alert(error instanceof Error ? error.message : 'Не удалось отклонить кандидата. Попробуйте еще раз.');
     } finally {
       setIsRejecting(false);
+    }
+  };
+
+  const saveHrComments = async () => {
+    if (!data || !candidateId) return;
+
+    const userId = getUserId();
+    if (!userId) {
+      alert('Не удалось получить данные пользователя');
+      return;
+    }
+
+    try {
+      setIsSavingComments(true);
+
+      await apiPost<{ success: boolean; message?: string }>(
+        `/api/v2/vacancies/candidates/update_hr_comments`,
+        {
+          vacancy_id: vacancy.id,
+          candidate_id: candidateId,
+          comments_hr: hrComments.trim(),
+        }
+      );
+
+      setIsEditingComments(false);
+      await loadCandidateData();
+    } catch (error) {
+      console.error('Failed to save HR comments:', error);
+      alert(error instanceof Error ? error.message : 'Не удалось сохранить комментарии. Попробуйте еще раз.');
+    } finally {
+      setIsSavingComments(false);
     }
   };
 
@@ -1043,6 +1085,68 @@ export function CandidateDetails() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Комментарии рекрутера */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-primary-600" />
+                    Комментарии рекрутера
+                  </h2>
+                  {!isEditingComments && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsEditingComments(true)}
+                    >
+                      Редактировать
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isEditingComments ? (
+                  <div className="space-y-3">
+                    <Textarea
+                      value={hrComments}
+                      onChange={(e) => setHrComments(e.target.value)}
+                      placeholder="Добавьте свои комментарии о кандидате..."
+                      rows={6}
+                      disabled={isSavingComments}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={saveHrComments}
+                        disabled={isSavingComments}
+                      >
+                        {isSavingComments ? 'Сохранение...' : 'Сохранить'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditingComments(false);
+                          setHrComments(candidate.comments_hr || '');
+                        }}
+                        disabled={isSavingComments}
+                      >
+                        Отмена
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    {hrComments ? (
+                      <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">{hrComments}</p>
+                    ) : (
+                      <p className="text-gray-500 italic">Комментарии отсутствуют. Нажмите "Редактировать" чтобы добавить.</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
