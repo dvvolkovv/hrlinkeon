@@ -634,7 +634,7 @@ export function VacancyDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold text-gray-900">Кандидаты</h2>
                 <div className="flex flex-wrap gap-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       variant={filterStatus === 'all' ? 'primary' : 'outline'}
@@ -655,6 +655,27 @@ export function VacancyDashboard() {
                       onClick={() => setFilterStatus('screening')}
                     >
                       Скрининг
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterStatus === 'interviewed' ? 'primary' : 'outline'}
+                      onClick={() => setFilterStatus('interviewed')}
+                    >
+                      Интервью
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterStatus === 'accepted' ? 'primary' : 'outline'}
+                      onClick={() => setFilterStatus('accepted')}
+                    >
+                      Предложение
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterStatus === 'reserve' ? 'primary' : 'outline'}
+                      onClick={() => setFilterStatus('reserve')}
+                    >
+                      Резерв
                     </Button>
                   </div>
                   <div className="flex gap-2 border-l pl-2">
