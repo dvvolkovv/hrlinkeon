@@ -240,17 +240,9 @@ export function RecruiterDashboard() {
     }
   };
 
-  const handleVacancyClick = async (vacancyId: string) => {
-    try {
-      // Отправляем POST запрос с ID вакансии
-      await apiPost('/api/v2/vacancies', {
-        id: vacancyId
-      });
-    } catch (error) {
-      console.error('Error sending vacancy ID:', error);
-    }
-
+  const handleVacancyClick = (vacancyId: string) => {
     // Переходим на дашборд вакансии
+    // POST запрос с ID вакансии будет выполнен на странице VacancyDashboard при загрузке
     navigate(`/vacancy/${vacancyId}/dashboard`);
   };
 
