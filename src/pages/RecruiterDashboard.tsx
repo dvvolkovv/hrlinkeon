@@ -151,6 +151,20 @@ export function RecruiterDashboard() {
     navigate(`/vacancy/${vacancyId}/chat`);
   };
 
+  const handleVacancyClick = async (vacancyId: string) => {
+    try {
+      // Отправляем POST запрос с ID вакансии
+      await apiPost('/api/v2/vacancies', {
+        id: vacancyId
+      });
+    } catch (error) {
+      console.error('Error sending vacancy ID:', error);
+    }
+    
+    // Переходим на дашборд вакансии
+    navigate(`/vacancy/${vacancyId}/dashboard`);
+  };
+
   const openDeleteModal = (vacancy: Vacancy) => {
     setVacancyToDelete(vacancy);
     setShowDeleteModal(true);
@@ -388,7 +402,7 @@ export function RecruiterDashboard() {
             <Card
               key={vacancy.id}
               hover
-              onClick={() => navigate(`/vacancy/${vacancy.id}/dashboard`)}
+              onClick={() => handleVacancyClick(vacancy.id)}
               className="cursor-pointer"
             >
               <CardHeader>
@@ -499,12 +513,15 @@ export function RecruiterDashboard() {
                         </span>
                       </Button>
                     )}
-                    <Link to={`/vacancy/${vacancy.id}/dashboard`}>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Eye className="w-4 h-4" />
-                        <span className="hidden sm:inline">Кандидаты</span>
-                      </Button>
-                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-2"
+                      onClick={() => handleVacancyClick(vacancy.id)}
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span className="hidden sm:inline">Кандидаты</span>
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
