@@ -635,7 +635,7 @@ export function VacancyDashboard() {
         <Card>
           <CardHeader>
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <h2 className="text-xl font-semibold text-gray-900 whitespace-nowrap">
                   Кандидаты 
                   <span className="ml-2 text-sm font-normal text-gray-500">
@@ -643,7 +643,53 @@ export function VacancyDashboard() {
                   </span>
                 </h2>
                 
-                <div className="flex items-center gap-2 overflow-x-auto">
+                {/* Мобильная версия - выпадающие списки */}
+                <div className="flex sm:hidden items-center gap-2">
+                  {/* Сортировка */}
+                  <div className="flex-1">
+                    <Select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as SortType)}
+                      options={[
+                        { value: 'date_desc', label: '🕒 Дата: новые' },
+                        { value: 'date_asc', label: '🕒 Дата: старые' },
+                        { value: 'score_desc', label: '⭐ Скоринг: высокий' },
+                        { value: 'score_asc', label: '⭐ Скоринг: низкий' },
+                      ]}
+                      className="text-sm py-2"
+                    />
+                  </div>
+                  
+                  {/* Фильтр по статусу */}
+                  <div className="flex-1">
+                    <Select
+                      value={filterProfileReady === true ? 'ready' : filterStatus}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === 'ready') {
+                          setFilterProfileReady(true);
+                          setFilterStatus('all');
+                        } else {
+                          setFilterProfileReady(null);
+                          setFilterStatus(value);
+                        }
+                      }}
+                      options={[
+                        { value: 'all', label: `📋 Все (${stats.total})` },
+                        { value: 'new', label: `🆕 Новые${stats.new > 0 ? ` (${stats.new})` : ''}` },
+                        { value: 'screening', label: `🔍 Скрининг${stats.screening > 0 ? ` (${stats.screening})` : ''}` },
+                        { value: 'interviewed', label: `💼 Интервью${stats.interviewed > 0 ? ` (${stats.interviewed})` : ''}` },
+                        { value: 'accepted', label: `✅ Предложение${stats.accepted > 0 ? ` (${stats.accepted})` : ''}` },
+                        { value: 'reserve', label: `📌 Резерв${stats.reserve > 0 ? ` (${stats.reserve})` : ''}` },
+                        { value: 'ready', label: `✓ Готов${stats.profileReady > 0 ? ` (${stats.profileReady})` : ''}` },
+                      ]}
+                      className="text-sm py-2"
+                    />
+                  </div>
+                </div>
+                
+                {/* Десктопная версия - кнопки */}
+                <div className="hidden sm:flex items-center gap-2 overflow-x-auto">
                   {/* Фильтры по статусу */}
                   <div className="flex items-center gap-1.5">
                     <Button
@@ -733,8 +779,7 @@ export function VacancyDashboard() {
                       className={`flex items-center gap-1 whitespace-nowrap ${filterProfileReady === true ? 'bg-green-600 hover:bg-green-700 border-green-600' : ''}`}
                     >
                       <Check className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Профиль готов</span>
-                      <span className="sm:hidden">Готов</span>
+                      <span>Профиль готов</span>
                       {stats.profileReady > 0 && (
                         <Badge variant="success" className="text-xs px-1 py-0.5">
                           {stats.profileReady}
