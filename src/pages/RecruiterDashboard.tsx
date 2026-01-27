@@ -240,6 +240,20 @@ export function RecruiterDashboard() {
     }
   };
 
+  const handleVacancyClick = async (vacancyId: string) => {
+    try {
+      // Отправляем POST запрос с ID вакансии
+      await apiPost('/api/v2/vacancies', {
+        id: vacancyId
+      });
+    } catch (error) {
+      console.error('Error sending vacancy ID:', error);
+    }
+
+    // Переходим на дашборд вакансии
+    navigate(`/vacancy/${vacancyId}/dashboard`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-forest-50 via-white to-warm-50 flex items-center justify-center">
@@ -388,7 +402,7 @@ export function RecruiterDashboard() {
             <Card
               key={vacancy.id}
               hover
-              onClick={() => navigate(`/vacancy/${vacancy.id}/dashboard`)}
+              onClick={() => handleVacancyClick(vacancy.id)}
               className="cursor-pointer"
             >
               <CardHeader>
@@ -499,11 +513,14 @@ export function RecruiterDashboard() {
                         </span>
                       </Button>
                     )}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="gap-2"
-                      onClick={() => handleVacancyClick(vacancy.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVacancyClick(vacancy.id);
+                      }}
                     >
                       <Eye className="w-4 h-4" />
                       <span className="hidden sm:inline">Кандидаты</span>
