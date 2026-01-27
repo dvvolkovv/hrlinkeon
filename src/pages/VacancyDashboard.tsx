@@ -690,87 +690,103 @@ export function VacancyDashboard() {
                 
                 {/* Десктопная версия - кнопки */}
                 <div className="hidden sm:flex items-center gap-2 overflow-x-auto">
-                  {/* Фильтры по статусу */}
+                  {/* Сортировка */}
                   <div className="flex items-center gap-1.5">
-                    <Button
-                      size="sm"
-                      variant={filterStatus === 'all' ? 'primary' : 'outline'}
-                      onClick={() => setFilterStatus('all')}
-                      className="flex items-center gap-1 whitespace-nowrap"
-                    >
-                      <span>Все</span>
-                      <Badge variant="info" className="text-xs px-1 py-0.5">
-                        {stats.total}
-                      </Badge>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterStatus === 'new' ? 'primary' : 'outline'}
-                      onClick={() => setFilterStatus('new')}
-                      className="flex items-center gap-1 whitespace-nowrap"
-                    >
-                      <span>Новые</span>
-                      {stats.new > 0 && (
-                        <Badge variant="info" className="text-xs px-1 py-0.5">
-                          {stats.new}
-                        </Badge>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterStatus === 'screening' ? 'primary' : 'outline'}
-                      onClick={() => setFilterStatus('screening')}
-                      className="flex items-center gap-1 whitespace-nowrap"
-                    >
-                      <span>Скрининг</span>
-                      {stats.screening > 0 && (
-                        <Badge variant="warning" className="text-xs px-1 py-0.5">
-                          {stats.screening}
-                        </Badge>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterStatus === 'interviewed' ? 'primary' : 'outline'}
-                      onClick={() => setFilterStatus('interviewed')}
-                      className="flex items-center gap-1 whitespace-nowrap"
-                    >
-                      <span>Интервью</span>
-                      {stats.interviewed > 0 && (
-                        <Badge variant="primary" className="text-xs px-1 py-0.5">
-                          {stats.interviewed}
-                        </Badge>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterStatus === 'accepted' ? 'primary' : 'outline'}
-                      onClick={() => setFilterStatus('accepted')}
-                      className="flex items-center gap-1 whitespace-nowrap"
-                    >
-                      <span>Предложение</span>
-                      {stats.accepted > 0 && (
-                        <Badge variant="success" className="text-xs px-1 py-0.5">
-                          {stats.accepted}
-                        </Badge>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterStatus === 'reserve' ? 'primary' : 'outline'}
-                      onClick={() => setFilterStatus('reserve')}
-                      className="flex items-center gap-1 whitespace-nowrap"
-                    >
-                      <span>Резерв</span>
-                      {stats.reserve > 0 && (
-                        <Badge variant="warning" className="text-xs px-1 py-0.5">
-                          {stats.reserve}
-                        </Badge>
-                      )}
-                    </Button>
+                    <ArrowUpDown className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                    <Select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as SortType)}
+                      options={[
+                        { value: 'date_desc', label: 'Дата ↓' },
+                        { value: 'date_asc', label: 'Дата ↑' },
+                        { value: 'score_desc', label: 'Скоринг ↓' },
+                        { value: 'score_asc', label: 'Скоринг ↑' },
+                      ]}
+                      className="text-sm py-1 w-32"
+                    />
                   </div>
                   
                   <div className="flex items-center gap-2 border-l border-gray-300 pl-2">
+                    {/* Фильтры по статусу */}
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        size="sm"
+                        variant={filterStatus === 'all' ? 'primary' : 'outline'}
+                        onClick={() => setFilterStatus('all')}
+                        className="flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <span>Все</span>
+                        <Badge variant="info" className="text-xs px-1 py-0.5">
+                          {stats.total}
+                        </Badge>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={filterStatus === 'new' ? 'primary' : 'outline'}
+                        onClick={() => setFilterStatus('new')}
+                        className="flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <span>Новые</span>
+                        {stats.new > 0 && (
+                          <Badge variant="info" className="text-xs px-1 py-0.5">
+                            {stats.new}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={filterStatus === 'screening' ? 'primary' : 'outline'}
+                        onClick={() => setFilterStatus('screening')}
+                        className="flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <span>Скрининг</span>
+                        {stats.screening > 0 && (
+                          <Badge variant="warning" className="text-xs px-1 py-0.5">
+                            {stats.screening}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={filterStatus === 'interviewed' ? 'primary' : 'outline'}
+                        onClick={() => setFilterStatus('interviewed')}
+                        className="flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <span>Интервью</span>
+                        {stats.interviewed > 0 && (
+                          <Badge variant="primary" className="text-xs px-1 py-0.5">
+                            {stats.interviewed}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={filterStatus === 'accepted' ? 'primary' : 'outline'}
+                        onClick={() => setFilterStatus('accepted')}
+                        className="flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <span>Предложение</span>
+                        {stats.accepted > 0 && (
+                          <Badge variant="success" className="text-xs px-1 py-0.5">
+                            {stats.accepted}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={filterStatus === 'reserve' ? 'primary' : 'outline'}
+                        onClick={() => setFilterStatus('reserve')}
+                        className="flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <span>Резерв</span>
+                        {stats.reserve > 0 && (
+                          <Badge variant="warning" className="text-xs px-1 py-0.5">
+                            {stats.reserve}
+                          </Badge>
+                        )}
+                      </Button>
+                    </div>
+                    
                     {/* Фильтр "Профиль готов" */}
                     <Button
                       size="sm"
@@ -786,22 +802,6 @@ export function VacancyDashboard() {
                         </Badge>
                       )}
                     </Button>
-                    
-                    {/* Сортировка */}
-                    <div className="flex items-center gap-1.5">
-                      <ArrowUpDown className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
-                      <Select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as SortType)}
-                        options={[
-                          { value: 'date_desc', label: 'Дата ↓' },
-                          { value: 'date_asc', label: 'Дата ↑' },
-                          { value: 'score_desc', label: 'Скоринг ↓' },
-                          { value: 'score_asc', label: 'Скоринг ↑' },
-                        ]}
-                        className="text-sm py-1 w-32"
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
