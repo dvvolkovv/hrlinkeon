@@ -141,7 +141,9 @@ export function VacancyDashboard() {
       const validCandidates = candidatesData.filter(c => c.id && c.email);
       setCandidates(validCandidates);
 
-      const vacancyResult = await apiPost<{ success: boolean; data: any[] }>('/api/v2/vacancies', {});
+      const vacancyResult = await apiPost<{ success: boolean; data: any[] }>('/api/v2/vacancies', {
+        id: vacancyId
+      });
 
       const apiVacancies = vacancyResult.data || [];
       const currentVacancy = apiVacancies.find((v: any) => v.id === vacancyId);

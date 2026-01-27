@@ -151,20 +151,6 @@ export function RecruiterDashboard() {
     navigate(`/vacancy/${vacancyId}/chat`);
   };
 
-  const handleVacancyClick = async (vacancyId: string) => {
-    try {
-      // Отправляем POST запрос с ID вакансии
-      await apiPost('/api/v2/vacancies', {
-        id: vacancyId
-      });
-    } catch (error) {
-      console.error('Error sending vacancy ID:', error);
-    }
-    
-    // Переходим на дашборд вакансии
-    navigate(`/vacancy/${vacancyId}/dashboard`);
-  };
-
   const openDeleteModal = (vacancy: Vacancy) => {
     setVacancyToDelete(vacancy);
     setShowDeleteModal(true);
@@ -402,7 +388,7 @@ export function RecruiterDashboard() {
             <Card
               key={vacancy.id}
               hover
-              onClick={() => handleVacancyClick(vacancy.id)}
+              onClick={() => navigate(`/vacancy/${vacancy.id}/dashboard`)}
               className="cursor-pointer"
             >
               <CardHeader>
