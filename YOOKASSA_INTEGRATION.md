@@ -30,6 +30,7 @@
 
 ### 1. HR YooKassa Create Payment
 **Endpoint:** `POST https://nomira-ai-test.up.railway.app/webhook/api/v2/yookassa/create-payment`
+**Frontend:** `/webhook/api/v2/yookassa/create-payment`
 
 **Назначение:** Создание нового платежа
 
@@ -153,12 +154,12 @@ Password: live_SsGIMIi9bRnW021fpc0Ruc5DV_7VxIEBnIzYuXZrE60
 
 #### 1. Получение списка пакетов:
 ```typescript
-const packages = await apiGet('/api/v2/token-packages');
+const packages = await apiGet('/webhook/api/v2/token-packages');
 ```
 
 #### 2. Создание платежа:
 ```typescript
-const response = await apiPost('/api/v2/yookassa/create-payment', {
+const response = await apiPost('/webhook/api/v2/yookassa/create-payment', {
   package_id: 'starter',
   email: user.email
 });
@@ -171,7 +172,7 @@ window.location.href = response.confirmation_url;
 ```typescript
 const paymentId = new URLSearchParams(window.location.search).get('payment_id');
 
-const result = await apiPost('/api/v2/yookassa/verify-payment', {
+const result = await apiPost('/webhook/api/v2/yookassa/verify-payment', {
   payment_id: paymentId
 });
 

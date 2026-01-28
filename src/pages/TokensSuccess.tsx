@@ -36,7 +36,7 @@ export function TokensSuccess() {
       }
 
       // Проверяем статус платежа
-      const response = await apiPost<VerifyResponse>('/api/v2/yookassa/verify-payment', {
+      const response = await apiPost<VerifyResponse>('/webhook/api/v2/yookassa/verify-payment', {
         payment_id: paymentId,
       });
 

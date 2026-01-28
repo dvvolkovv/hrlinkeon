@@ -47,13 +47,13 @@ export function BuyTokens() {
       }
 
       // Загружаем пакеты токенов
-      const packagesResponse = await apiGet<{ success: boolean; data: Tariff[] }>('/api/v2/token-packages');
+      const packagesResponse = await apiGet<{ success: boolean; data: Tariff[] }>('/webhook/api/v2/token-packages');
       if (packagesResponse.success && packagesResponse.data) {
         setTariffs(packagesResponse.data);
       }
 
       // Загружаем баланс пользователя
-      const balanceResponse = await apiGet<{ success: boolean; data: TokenBalance }>('/api/v2/user/balance');
+      const balanceResponse = await apiGet<{ success: boolean; data: TokenBalance }>('/webhook/api/v2/user/balance');
       if (balanceResponse.success && balanceResponse.data) {
         setBalance(balanceResponse.data);
       }
@@ -83,7 +83,7 @@ export function BuyTokens() {
         payment_id: string;
         confirmation_url: string;
         status: string;
-      }>('/api/v2/yookassa/create-payment', {
+      }>('/webhook/api/v2/yookassa/create-payment', {
         package_id: tariff.code,
         email: userEmail,
       });

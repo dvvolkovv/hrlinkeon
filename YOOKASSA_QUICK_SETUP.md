@@ -82,10 +82,21 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
     {
       "code": "starter",
       "name": "Стартовый",
-      "tokens": 1000,
-      "price_rub": 500.00
+      "tokens": 50000,
+      "price_rub": 199.00
     },
-    ...
+    {
+      "code": "professional",
+      "name": "Профессиональный",
+      "tokens": 200000,
+      "price_rub": 499.00
+    },
+    {
+      "code": "business",
+      "name": "Бизнес",
+      "tokens": 1000000,
+      "price_rub": 1999.00
+    }
   ]
 }
 ```
@@ -120,6 +131,8 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   "success": true,
   "data": {
     "user_id": "uuid",
+    "email": "user@example.com",
+    "name": "Иван Иванов",
     "tokens": 0,
     "usage_stats": {
       "usage_count_30d": 0,
@@ -133,11 +146,18 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 
 | Метод | Endpoint | Описание |
 |-------|----------|----------|
-| GET | `/api/v2/token-packages` | Список пакетов токенов |
-| GET | `/api/v2/user/balance` | Баланс токенов пользователя |
-| POST | `/api/v2/yookassa/create-payment` | Создать платеж |
-| POST | `/api/v2/yookassa/verify-payment` | Проверить статус платежа |
-| POST | `/api/v2/yookassa/notification` | Webhook от YooKassa (не вызывать вручную) |
+| GET | `/webhook/api/v2/token-packages` | Список пакетов токенов |
+| GET | `/webhook/api/v2/user/balance` | Баланс токенов пользователя |
+| POST | `/webhook/api/v2/yookassa/create-payment` | Создать платеж |
+| POST | `/webhook/api/v2/yookassa/verify-payment` | Проверить статус платежа |
+| POST | `/webhook/api/v2/yookassa/notification` | Webhook от YooKassa (не вызывать вручную) |
+
+**Полные URL:**
+- `https://nomira-ai-test.up.railway.app/webhook/api/v2/token-packages`
+- `https://nomira-ai-test.up.railway.app/webhook/api/v2/user/balance`
+- `https://nomira-ai-test.up.railway.app/webhook/api/v2/yookassa/create-payment`
+- `https://nomira-ai-test.up.railway.app/webhook/api/v2/yookassa/verify-payment`
+- `https://nomira-ai-test.up.railway.app/webhook/api/v2/yookassa/notification`
 
 ## 🚨 Частые проблемы
 
