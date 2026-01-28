@@ -8,7 +8,7 @@ import { RichTextEditor } from '../components/ui/RichTextEditor';
 import { Button } from '../components/ui/Button';
 import { mockStorage } from '../lib/mockData';
 import { Briefcase, FileText, Edit3, Upload, Link as LinkIcon } from 'lucide-react';
-import { apiPost, apiFetch } from '../lib/api';
+import { apiPost, apiFetch, apiPatch } from '../lib/api';
 import { getUserId } from '../lib/auth';
 
 interface VacancyForm {
