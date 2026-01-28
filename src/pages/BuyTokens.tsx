@@ -63,8 +63,8 @@ export function BuyTokens() {
       const balanceResponse = await apiGet<{ success: boolean; data: TokenBalance }>('/api/v2/user/balance');
       if (balanceResponse.success && balanceResponse.data) {
         setBalance(balanceResponse.data);
-        // Автоматически подставляем email пользователя
-        if (balanceResponse.data.email && !email) {
+        // Автоматически подставляем email пользователя только если он валидный
+        if (balanceResponse.data.email && !email && validateEmail(balanceResponse.data.email)) {
           setEmail(balanceResponse.data.email);
         }
       }
