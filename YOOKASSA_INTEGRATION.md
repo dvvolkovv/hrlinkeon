@@ -163,12 +163,14 @@ const packages = await apiGet('/api/v2/token-packages');
 ```typescript
 const response = await apiPost('/api/v2/yookassa/create-payment', {
   package_id: 'starter',
-  email: user.email
+  email: user.email // ОБЯЗАТЕЛЬНО: email для отправки чека (54-ФЗ)
 });
 
 // Перенаправить пользователя на страницу оплаты
 window.location.href = response.confirmation_url;
 ```
+
+**Важно:** Email обязателен для соответствия требованиям 54-ФЗ (онлайн-кассы).
 
 #### 3. Проверка статуса платежа (на странице success):
 ```typescript

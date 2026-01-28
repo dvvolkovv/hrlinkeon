@@ -32,11 +32,18 @@ export function BuyTokens() {
   const [balance, setBalance] = useState<TokenBalance | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
   }, []);
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const loadData = async () => {
     try {
@@ -56,6 +63,10 @@ export function BuyTokens() {
       const balanceResponse = await apiGet<{ success: boolean; data: TokenBalance }>('/api/v2/user/balance');
       if (balanceResponse.success && balanceResponse.data) {
         setBalance(balanceResponse.data);
+        // Автоматически подставляем email пользователя
+        if (balanceResponse.data.email && !email) {
+          setEmail(balanceResponse.data.email);
+        }
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -66,6 +77,13 @@ export function BuyTokens() {
   };
 
   const handlePurchase = async (tariff: Tariff) => {
+    // Валидация email перед покупкой
+    if (!email || !validateEmail(email)) {
+      setEmailError('Пожалуйста, введите корректный email для получения чека');
+      return;
+    }
+
+    setEmailError('');
     setPurchasing(tariff.id);
 
     try {
@@ -75,17 +93,14 @@ export function BuyTokens() {
         return;
       }
 
-      // Получаем email пользователя из localStorage или balance
-      const userEmail = balance?.email || localStorage.getItem('user_email') || 'user@example.com';
-
-      // Создаем платеж через YooKassa
+      // Создаем платеж через YooKassa с указанным email
       const paymentResponse = await apiPost<{
         payment_id: string;
         confirmation_url: string;
         status: string;
       }>('/api/v2/yookassa/create-payment', {
         package_id: tariff.code,
-        email: userEmail,
+        email: email.trim(),
       });
 
       if (paymentResponse.confirmation_url) {
@@ -156,7 +171,7 @@ export function BuyTokens() {
           </p>
 
           {balance && (
-            <Card className="max-w-md mx-auto">
+            <Card className="max-w-md mx-auto mb-6">
               <CardContent className="py-6">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-2">Текущий баланс</p>
@@ -171,6 +186,36 @@ export function BuyTokens() {
               </CardContent>
             </Card>
           )}
+
+          <Card className="max-w-md mx-auto">
+            <CardContent className="py-6">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email для получения чека <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
+                placeholder="your@email.com"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                  emailError
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-forest-500'
+                }`}
+                required
+              />
+              {emailError && (
+                <p className="mt-2 text-sm text-red-600">{emailError}</p>
+              )}
+              <p className="mt-2 text-xs text-gray-500">
+                На этот email будет отправлен чек после успешной оплаты
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -237,11 +282,16 @@ export function BuyTokens() {
 
                   <Button
                     className="w-full"
-                    disabled={purchasing !== null}
+                    disabled={purchasing !== null || !email || !validateEmail(email)}
                     onClick={() => handlePurchase(tariff)}
                   >
                     {purchasing === tariff.id ? 'Обработка...' : 'Купить'}
                   </Button>
+                  {!email && (
+                    <p className="text-xs text-amber-600 mt-2 text-center">
+                      Укажите email выше для покупки
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             );
