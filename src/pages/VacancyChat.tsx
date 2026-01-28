@@ -100,13 +100,8 @@ export function VacancyChat() {
 
         // Проверяем на JWT expired
         if (errorData.error === 'JWT has expired' || errorData.code === 401) {
-          addAssistantMessage('Сессия истекла. Пожалуйста, обновите страницу для продолжения работы.');
-          setIsProcessing(false);
-          // Через 2 секунды перезагружаем страницу
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
-          return; // Прерываем выполнение
+          // Выбрасываем специальную ошибку для обработки в handleSendMessage
+          throw new Error('Сессия истекла. Пожалуйста, обновите страницу.');
         }
 
         throw new Error(errorData.error || errorData.message || 'Ошибка при получении ответа от сервера');
@@ -224,8 +219,23 @@ export function VacancyChat() {
     try {
       await sendMessageToAPI(content, userId, vacancyId);
     } catch (error) {
-      addAssistantMessage('Произошла ошибка при отправке сообщения. Попробуйте еще раз.');
-      setIsProcessing(false);
+      console.error('[VacancyChat] Error sending message:', error);
+      
+      // Проверяем, не является ли это ошибкой JWT expired
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes('Сессия истекла') || errorMessage.includes('JWT')) {
+        // Это JWT expired - показываем специальное сообщение
+        addAssistantMessage('Сессия истекла. Страница будет обновлена через 2 секунды...');
+        setIsProcessing(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        // Обычная ошибка
+        addAssistantMessage(`Произошла ошибка: ${errorMessage}. Попробуйте еще раз.`);
+        setIsProcessing(false);
+      }
     }
   };
 
