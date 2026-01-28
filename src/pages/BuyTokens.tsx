@@ -328,12 +328,6 @@ export function BuyTokens() {
                   </div>
                 </div>
               </div>
-              <div className="mt-6 p-4 bg-white rounded-lg border border-forest-200">
-                <p className="text-sm text-gray-700 text-center">
-                  <strong>Примерный расход:</strong> 1 диалог с кандидатом ≈ 500-1000 токенов,
-                  составление вакансии ≈ 300-500 токенов
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
