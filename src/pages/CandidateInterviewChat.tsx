@@ -74,7 +74,7 @@ export function CandidateInterviewChat() {
 
     try {
       const data = await apiPost<ProfileStatus | ProfileStatus[]>(
-        `/hrlinkeon-public-vacancy/public/vacancies/candidates/profile-status`,
+        `/fb753981-7139-4a49-9bc6-df3e8afc577a/public/vacancies/${publicLink}/candidates/${candidateId}/profile-status`,
         {
           candidate_id: candidateId,
           public_link: publicLink,
@@ -96,7 +96,7 @@ export function CandidateInterviewChat() {
 
   const sendMessageToAPI = async (message: string) => {
     const response = await apiFetch(
-      `/hrlinkeon-public-vacancy/public/vacancies/${publicLink}/candidates/${candidateId}/chat`,
+      `/82aa583e-af84-4dde-87ce-1b924752ff1e/public/vacancies/${publicLink}/candidates/${candidateId}/chat`,
       {
         method: 'POST',
         body: JSON.stringify({
