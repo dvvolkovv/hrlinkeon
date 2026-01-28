@@ -1,0 +1,478 @@
+{
+  "name": "HR YooKassa Create Payment",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/v2/yookassa/create-payment",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1040,
+        112
+      ],
+      "id": "e6752aa0-341e-4472-ae52-1e49edf82efe",
+      "name": "Webhook",
+      "webhookId": "hr-yookassa-create-payment"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  code,\n  name,\n  tokens,\n  price_rub,\n  is_active\nFROM token_packages\nWHERE code = '{{ $('Webhook').item.json.body['package_id'] }}'\n  AND is_active = TRUE\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -448,
+        112
+      ],
+      "id": "6a426153-8b11-442d-b190-38aead8787f3",
+      "name": "Get Package Info",
+      "credentials": {
+        "postgres": {
+          "id": "khfMOMhTg6PSRpVS",
+          "name": "HR_Linkeon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "package-exists",
+              "leftValue": "={{ $json.code }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        112
+      ],
+      "id": "2f458e64-9ed1-4098-9b2f-f8c3a399576d",
+      "name": "Package Found?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Обновляем email пользователя и возвращаем его данные\nUPDATE users \nSET \n  email = '{{ $('Webhook').item.json.body.email }}',\n  updated_at = CURRENT_TIMESTAMP\nWHERE id = '{{ $('Call Check JWT').item.json.user_id }}'::uuid\nRETURNING id, email;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5bc117a6-fc08-4d06-9342-3bcb8bb1b227",
+      "name": "Update User Email",
+      "credentials": {
+        "postgres": {
+          "id": "khfMOMhTg6PSRpVS",
+          "name": "HR_Linkeon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.yookassa.ru/v3/payments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Idempotence-Key",
+              "value": "={{ $json.idempotenceKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.paymentDataJson }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "3d8bc4c7-4953-46d5-9b4a-596671b5d967",
+      "name": "Create YooKassa Payment",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2mVxA5Fl4CdoOUgj",
+          "name": "YokassaHR"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const yooResponse = $input.item.json;\nconst packageInfo = $('Get Package Info').item.json;\n\nreturn {\n  json: {\n    payment_id: yooResponse.id,\n    status: yooResponse.status,\n    confirmation_url: yooResponse.confirmation?.confirmation_url || '',\n    user_id: $('Call Check JWT').item.json.user_internal_id,\n    package_id: packageInfo.code,\n    tokens: parseInt(packageInfo.tokens),\n    amount: parseFloat(packageInfo.price_rub)\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8362204f-234d-465b-88cf-7880190d31c6",
+      "name": "Process YooKassa Response"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "payments"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_id": "={{ $('Call Check JWT').item.json.user_id }}",
+            "payment_id": "={{ $json.payment_id }}",
+            "package_id": "={{ $json.package_id }}",
+            "amount": "={{ $json.amount }}",
+            "tokens": "={{ $json.tokens }}",
+            "status": "={{ $json.status }}",
+            "payment_url": "={{ $json.confirmation_url }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        784,
+        0
+      ],
+      "id": "f5ee6c75-9bd1-4501-8085-279df68a97b3",
+      "name": "Save Payment",
+      "credentials": {
+        "postgres": {
+          "id": "khfMOMhTg6PSRpVS",
+          "name": "HR_Linkeon"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"payment_id\": \"{{ $json.payment_id }}\",\n  \"confirmation_url\": \"{{ $json.payment_url }}\",\n  \"status\": \"{{ $json.status }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        0
+      ],
+      "id": "f33f9d75-9254-4e24-ace5-d4c3404f3eb5",
+      "name": "Respond Success"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"PACKAGE_NOT_FOUND\",\n  \"message\": \"Тариф не найден или неактивен\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        208
+      ],
+      "id": "75b50b15-923e-4f5e-b628-31fd912ec584",
+      "name": "Respond Package Error"
+    },
+    {
+      "parameters": {
+        "jsCode": "const packageInfo = $('Get Package Info').item.json;\nconst webhookData = $('Webhook').item.json;\n\n// Формируем правильный JSON для YooKassa (Smart payment с redirect + receipt для 54-ФЗ)\nconst paymentData = {\n  amount: {\n    value: parseFloat(packageInfo.price_rub).toFixed(2),\n    currency: 'RUB'\n  },\n  confirmation: {\n    type: 'redirect',\n    return_url: `https://hr.linkeon.io/tokens/success`\n  },\n  capture: true,\n  description: `${packageInfo.name} - ${packageInfo.tokens} токенов`,\n  receipt: {\n    customer: {\n      email: webhookData.body.email || 'customer@example.com'\n    },\n    items: [\n      {\n        description: `${packageInfo.name} - ${packageInfo.tokens} токенов`,\n        quantity: '1.00',\n        amount: {\n          value: parseFloat(packageInfo.price_rub).toFixed(2),\n          currency: 'RUB'\n        },\n        vat_code: 1\n      }\n    ]\n  },\n  metadata: {\n    user_id: $('Call Check JWT').item.json.user_internal_id,\n    package_id: packageInfo.code,\n    tokens: packageInfo.tokens.toString()\n  }\n};\n\n// Генерируем уникальный ключ идемпотентности\nconst idempotenceKey = Date.now() + '-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);\n\nreturn {\n  json: {\n    paymentDataJson: JSON.stringify(paymentData),\n    idempotenceKey: idempotenceKey\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "93b327d9-a827-4853-9e04-bd47cd8193f2",
+      "name": "Prepare Payment Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d7ec048-c7a2-4eb1-8031-c54d58824d48",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -672,
+        112
+      ],
+      "id": "63f36bd6-1320-4d5b-bb69-b8e20e4c0329",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"{{ $('Call Check JWT').item.json.error }}\"\n}",
+        "options": {
+          "responseCode": "={{ $('Call Check JWT').item.json.code }}"
+        }
+      },
+      "id": "a2a5b8a1-dce7-4934-8160-ac97ad3bd7c1",
+      "name": "Respond Auth Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "3DOzLnJA1WPe6XZ0",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/3DOzLnJA1WPe6XZ0",
+          "cachedResultName": "HR common Check JWT"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "headers_authorization": "={{ $json.headers.authorization }}",
+            "jwt_type": "access"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "headers_authorization",
+              "displayName": "headers_authorization",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "jwt_type",
+              "displayName": "jwt_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -864,
+        112
+      ],
+      "name": "Call Check JWT",
+      "id": "d4748e30-771f-48bb-b5b6-5014d8576919"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Check JWT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Package Info": {
+      "main": [
+        [
+          {
+            "node": "Package Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Package Found?": {
+      "main": [
+        [
+          {
+            "node": "Update User Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Package Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payment Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create YooKassa Payment": {
+      "main": [
+        [
+          {
+            "node": "Process YooKassa Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process YooKassa Response": {
+      "main": [
+        [
+          {
+            "node": "Save Payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Payment": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payment Data": {
+      "main": [
+        [
+          {
+            "node": "Create YooKassa Payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Package Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Auth Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Check JWT": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "with-email-save-v1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43cac0651b2fa941c62d1707c8971e6e595147465975fd813a47f5680ce7d3d0"
+  },
+  "id": "FoB0sMuP9TEccBcJ",
+  "tags": []
+}

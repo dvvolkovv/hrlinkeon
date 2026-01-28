@@ -110,6 +110,10 @@ curl -X POST \
   https://nomira-ai-test.up.railway.app/webhook/api/v2/yookassa/create-payment
 ```
 
+**Важно:** Email обязателен и будет:
+- Использован для отправки чека по 54-ФЗ
+- Сохранен в профиле пользователя (таблица `users`)
+
 **Ожидаемый ответ:**
 ```json
 {
