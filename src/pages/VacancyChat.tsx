@@ -87,7 +87,35 @@ export function VacancyChat() {
     });
 
     if (!response.ok) {
-      throw new Error('Ошибка при получении ответа от сервера');
+      // Пытаемся прочитать тело ответа для более детальной ошибки
+      try {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          // Если не JSON, используем как есть
+          throw new Error(`Ошибка сервера: ${errorText || response.statusText}`);
+        }
+
+        // Проверяем на JWT expired
+        if (errorData.error === 'JWT has expired' || errorData.code === 401) {
+          addAssistantMessage('Сессия истекла. Пожалуйста, обновите страницу для продолжения работы.');
+          setIsProcessing(false);
+          // Через 2 секунды перезагружаем страницу
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+          return; // Прерываем выполнение
+        }
+
+        throw new Error(errorData.error || errorData.message || 'Ошибка при получении ответа от сервера');
+      } catch (err) {
+        if (err instanceof Error && err.message.includes('Сессия истекла')) {
+          throw err; // Пробрасываем ошибку сессии дальше
+        }
+        throw new Error('Ошибка при получении ответа от сервера');
+      }
     }
 
     const reader = response.body?.getReader();
@@ -118,6 +146,16 @@ export function VacancyChat() {
 
         try {
           const jsonData = JSON.parse(line);
+
+          // Проверяем на ошибку JWT expired в стриме
+          if (jsonData.error === 'JWT has expired' || (jsonData.success === false && jsonData.code === 401)) {
+            addAssistantMessage('Сессия истекла. Страница будет обновлена...');
+            setIsProcessing(false);
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+            return; // Прерываем обработку стрима
+          }
 
           if (jsonData.type === 'item' && jsonData.content) {
             assistantMessage += jsonData.content;
