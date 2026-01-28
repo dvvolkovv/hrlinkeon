@@ -4,19 +4,27 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { ArrowLeft, Coins, Check, Zap, TrendingUp, Award } from 'lucide-react';
+import { apiGet, apiPost } from '../lib/api';
 
 interface Tariff {
   id: string;
+  code: string;
   name: string;
   tokens: number;
-  price: number;
-  sort_order: number;
+  price_rub: number;
+  description?: string;
+  is_active: boolean;
 }
 
 interface TokenBalance {
-  balance: number;
-  total_purchased: number;
-  total_consumed: number;
+  user_id: string;
+  email: string;
+  name: string;
+  tokens: number;
+  usage_stats: {
+    usage_count_30d: number;
+    tokens_used_30d: number;
+  };
 }
 
 export function BuyTokens() {
@@ -38,23 +46,20 @@ export function BuyTokens() {
         return;
       }
 
-      const mockTariffs: Tariff[] = [
-        { id: '1', name: 'Стартовый', tokens: 50000, price: 199, sort_order: 1 },
-        { id: '2', name: 'Профессиональный', tokens: 200000, price: 499, sort_order: 2 },
-        { id: '3', name: 'Бизнес', tokens: 1000000, price: 1999, sort_order: 3 },
-      ];
-      setTariffs(mockTariffs);
+      // Загружаем пакеты токенов
+      const packagesResponse = await apiGet<{ success: boolean; data: Tariff[] }>('/api/v2/token-packages');
+      if (packagesResponse.success && packagesResponse.data) {
+        setTariffs(packagesResponse.data);
+      }
 
-      const storedBalance = localStorage.getItem('token_balance');
-      const currentBalance = storedBalance ? parseInt(storedBalance) : 0;
-
-      setBalance({
-        balance: currentBalance,
-        total_purchased: currentBalance,
-        total_consumed: 0,
-      });
+      // Загружаем баланс пользователя
+      const balanceResponse = await apiGet<{ success: boolean; data: TokenBalance }>('/api/v2/user/balance');
+      if (balanceResponse.success && balanceResponse.data) {
+        setBalance(balanceResponse.data);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
+      alert('Ошибка при загрузке данных. Попробуйте обновить страницу.');
     } finally {
       setLoading(false);
     }
@@ -70,20 +75,31 @@ export function BuyTokens() {
         return;
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Получаем email пользователя из localStorage или balance
+      const userEmail = balance?.email || localStorage.getItem('user_email') || 'user@example.com';
 
-      const newBalance = (balance?.balance || 0) + tariff.tokens;
+      // Создаем платеж через YooKassa
+      const paymentResponse = await apiPost<{
+        payment_id: string;
+        confirmation_url: string;
+        status: string;
+      }>('/api/v2/yookassa/create-payment', {
+        package_id: tariff.code,
+        email: userEmail,
+      });
 
-      localStorage.setItem('token_balance', newBalance.toString());
-
-      console.log(`[DEMO MODE] Куплено ${formatNumber(tariff.tokens)} токенов. Новый баланс: ${formatNumber(newBalance)}`);
-
-      await loadData();
-      alert(`Успешно! Вы приобрели ${formatNumber(tariff.tokens)} токенов`);
+      if (paymentResponse.confirmation_url) {
+        // Сохраняем payment_id в localStorage для проверки на странице успеха
+        localStorage.setItem('pending_payment_id', paymentResponse.payment_id);
+        
+        // Перенаправляем пользователя на страницу оплаты YooKassa
+        window.location.href = paymentResponse.confirmation_url;
+      } else {
+        throw new Error('Не удалось получить URL для оплаты');
+      }
     } catch (error) {
       console.error('Error purchasing tokens:', error);
-      alert('Произошла ошибка при покупке токенов');
-    } finally {
+      alert('Произошла ошибка при создании платежа. Попробуйте еще раз.');
       setPurchasing(null);
     }
   };
@@ -144,8 +160,13 @@ export function BuyTokens() {
               <CardContent className="py-6">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-2">Текущий баланс</p>
-                  <p className="text-4xl font-bold text-forest-600">{formatNumber(balance.balance)}</p>
+                  <p className="text-4xl font-bold text-forest-600">{formatNumber(balance.tokens)}</p>
                   <p className="text-sm text-gray-500 mt-2">токенов</p>
+                  {balance.usage_stats && balance.usage_stats.tokens_used_30d > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Использовано за 30 дней: {formatNumber(balance.usage_stats.tokens_used_30d)}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -177,7 +198,7 @@ export function BuyTokens() {
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{tariff.name}</h3>
                   <div className="mb-4">
-                    <span className="text-4xl font-bold text-gray-900">{tariff.price}</span>
+                    <span className="text-4xl font-bold text-gray-900">{tariff.price_rub}</span>
                     <span className="text-gray-600 ml-2">₽</span>
                   </div>
                   <div className="py-3 px-4 bg-gray-50 rounded-lg">

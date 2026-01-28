@@ -18,6 +18,7 @@ import { VacancyDashboard } from './pages/VacancyDashboard';
 import { RecruiterDashboard } from './pages/RecruiterDashboard';
 import { CandidateDetails } from './pages/CandidateDetails';
 import { BuyTokens } from './pages/BuyTokens';
+import { TokensSuccess } from './pages/TokensSuccess';
 import { Privacy } from './pages/Privacy';
 import { Terms } from './pages/Terms';
 import { OpenVacancies } from './pages/OpenVacancies';
@@ -48,6 +49,7 @@ function AppRouter() {
         <Route path="/open-vacancies" element={<OpenVacancies />} />
         <Route path="/recruiter" element={<RecruiterDashboard />} />
         <Route path="/buy-tokens" element={<BuyTokens />} />
+        <Route path="/tokens/success" element={<TokensSuccess />} />
         <Route path="/create-vacancy" element={<CreateVacancy />} />
         <Route path="/create-vacancy/manual" element={<CreateVacancyManual />} />
         <Route path="/vacancy/:vacancyId/edit" element={<EditVacancy />} />
