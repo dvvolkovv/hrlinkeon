@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Briefcase, Users, TrendingUp, Clock, CheckCircle, XCircle, UserCheck, Eye, Plus, BarChart3, Share2, Check, Coins, LogOut, CreditCard as Edit, MessageSquare, Trash2, AlertTriangle, Lock, Unlock } from 'lucide-react';
 import { Vacancy } from '../types/database';
-import { apiPost, apiDelete, apiPatch } from '../lib/api';
+import { apiPost, apiDelete, apiPatch, apiGet } from '../lib/api';
 import { getUserId } from '../lib/auth';
 
 interface VacancyStats {
@@ -37,14 +37,21 @@ export function RecruiterDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const storedBalance = localStorage.getItem('token_balance');
-      const currentBalance = storedBalance ? parseInt(storedBalance) : 0;
-      setTokenBalance(currentBalance);
-
       const userId = getUserId();
       if (!userId) {
         navigate('/login');
         return;
+      }
+
+      // Загружаем актуальный баланс токенов из API
+      try {
+        const balanceResponse = await apiGet<{ success: boolean; data: { tokens: number } }>('/api/v2/user/balance');
+        if (balanceResponse.success && balanceResponse.data) {
+          setTokenBalance(balanceResponse.data.tokens || 0);
+        }
+      } catch (error) {
+        console.error('Error loading token balance:', error);
+        // В случае ошибки баланс останется 0
       }
 
       const result = await apiPost<{ success: boolean; data: any[] }>('/api/v2/vacancies', {  });
