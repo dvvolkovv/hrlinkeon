@@ -154,12 +154,14 @@ Password: live_SsGIMIi9bRnW021fpc0Ruc5DV_7VxIEBnIzYuXZrE60
 
 #### 1. Получение списка пакетов:
 ```typescript
-const packages = await apiGet('/webhook/api/v2/token-packages');
+// Фронтенд использует /api/v2/... (базовый URL уже содержит /webhook)
+const packages = await apiGet('/api/v2/token-packages');
+// Результат: https://nomira-ai-test.up.railway.app/webhook/api/v2/token-packages
 ```
 
 #### 2. Создание платежа:
 ```typescript
-const response = await apiPost('/webhook/api/v2/yookassa/create-payment', {
+const response = await apiPost('/api/v2/yookassa/create-payment', {
   package_id: 'starter',
   email: user.email
 });
@@ -172,7 +174,7 @@ window.location.href = response.confirmation_url;
 ```typescript
 const paymentId = new URLSearchParams(window.location.search).get('payment_id');
 
-const result = await apiPost('/webhook/api/v2/yookassa/verify-payment', {
+const result = await apiPost('/api/v2/yookassa/verify-payment', {
   payment_id: paymentId
 });
 
@@ -180,6 +182,8 @@ if (result.status === 'succeeded') {
   alert(`Токены начислены! Новый баланс: ${result.new_balance}`);
 }
 ```
+
+**Важно:** Базовый URL в `lib/api.ts` уже содержит `/webhook`, поэтому на фронтенде используйте пути вида `/api/v2/...`
 
 ## 🔍 Проверка работы
 

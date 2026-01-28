@@ -144,15 +144,26 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 
 ## 🎯 API Endpoints
 
-| Метод | Endpoint | Описание |
-|-------|----------|----------|
-| GET | `/webhook/api/v2/token-packages` | Список пакетов токенов |
-| GET | `/webhook/api/v2/user/balance` | Баланс токенов пользователя |
-| POST | `/webhook/api/v2/yookassa/create-payment` | Создать платеж |
-| POST | `/webhook/api/v2/yookassa/verify-payment` | Проверить статус платежа |
-| POST | `/webhook/api/v2/yookassa/notification` | Webhook от YooKassa (не вызывать вручную) |
+### Frontend (используйте эти пути в apiGet/apiPost):
+| Метод | Path | Описание |
+|-------|------|----------|
+| GET | `/api/v2/token-packages` | Список пакетов токенов |
+| GET | `/api/v2/user/balance` | Баланс токенов пользователя |
+| POST | `/api/v2/yookassa/create-payment` | Создать платеж |
+| POST | `/api/v2/yookassa/verify-payment` | Проверить статус платежа |
 
-**Полные URL:**
+**Примечание:** Базовый URL в `lib/api.ts` уже содержит `/webhook`, поэтому используйте пути без него.
+
+### n8n Workflows (используйте эти пути в Webhook nodes):
+| Path | Описание |
+|------|----------|
+| `webhook/api/v2/token-packages` | Список пакетов токенов |
+| `webhook/api/v2/user/balance` | Баланс токенов пользователя |
+| `webhook/api/v2/yookassa/create-payment` | Создать платеж |
+| `webhook/api/v2/yookassa/verify-payment` | Проверить статус платежа |
+| `webhook/api/v2/yookassa/notification` | Webhook от YooKassa |
+
+**Полные URL (для curl и внешних запросов):**
 - `https://nomira-ai-test.up.railway.app/webhook/api/v2/token-packages`
 - `https://nomira-ai-test.up.railway.app/webhook/api/v2/user/balance`
 - `https://nomira-ai-test.up.railway.app/webhook/api/v2/yookassa/create-payment`
