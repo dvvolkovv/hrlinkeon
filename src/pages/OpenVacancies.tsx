@@ -66,7 +66,7 @@ export function OpenVacancies() {
   useEffect(() => {
     const fetchVacancies = async () => {
       try {
-        const data = await apiGet<ApiResponse>('/public/vacancies/all', { skipAuth: true });
+        const data = await apiGet<ApiResponse>('/hrlinkeon-public-vacancy/public/vacancies/all', { skipAuth: true });
 
         if (data.success) {
           setVacancies(data.data);

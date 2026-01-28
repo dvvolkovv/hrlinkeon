@@ -111,7 +111,7 @@ export function CandidateApplicationForm({
       setUploadProgress(30);
 
       const response = await apiFetch(
-        `/public/vacancies/${publicLink}/apply`,
+        `/hrlinkeon-public-vacancy/public/vacancies/${publicLink}/apply`,
         {
           method: 'POST',
           body: formData,

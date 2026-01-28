@@ -44,7 +44,7 @@ export function CandidateStatus() {
   const loadStatus = async () => {
     try {
       const data = await apiGet<CandidateStatusResponse>(
-        `/public/vacancies/${publicLink}/candidates/${candidateId}/status`,
+        `/hrlinkeon-public-vacancy/public/vacancies/${publicLink}/candidates/${candidateId}/status`,
         { skipAuth: true }
       );
       setStatus(data);

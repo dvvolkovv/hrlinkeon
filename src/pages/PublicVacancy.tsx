@@ -80,7 +80,7 @@ export function PublicVacancy() {
         return;
       }
 
-      const data = await apiGet<PublicVacancyResponse>(`/public/vacancies/${publicLink}`, { skipAuth: true });
+      const data = await apiGet<PublicVacancyResponse>(`/hrlinkeon-public-vacancy/public/vacancies/${publicLink}`, { skipAuth: true });
 
       if (!data.success) {
         setVacancy(null);
