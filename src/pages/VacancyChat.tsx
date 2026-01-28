@@ -77,6 +77,7 @@ export function VacancyChat() {
   };
 
   const sendMessageToAPI = async (message: string, userId: string, vacancyId: string) => {
+    
     const response = await apiFetch('/api/v2/rec/chat', {
       method: 'POST',
       body: JSON.stringify({

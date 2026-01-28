@@ -2,13 +2,7 @@
  * API клиент с автоматическим обновлением токенов
  */
 
-import {
-  getAccessToken,
-  getRefreshToken,
-  isTokenExpired,
-  refreshTokens,
-  clearAuth,
-} from './auth';
+import { getAccessToken, isTokenExpired, refreshTokens, clearAuth } from './auth';
 
 const getBaseUrl = (): string => {
   const hrLinkeonUrl = import.meta.env.VITE_HR_LINKEON_URL;
@@ -34,14 +28,37 @@ export async function apiFetch(
   options: FetchOptions = {}
 ): Promise<Response> {
   const { skipAuth = false, skipTokenRefresh = false, ...fetchOptions } = options;
-  
+
   const baseUrl = getBaseUrl();
   const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
-  
+
+  // Для рекрутерского чата всегда принудительно обновляем access token перед запросом
+  if (!skipAuth && endpoint.startsWith('/api/v2/rec/chat')) {
+    const refreshed = await ensureTokensRefreshed();
+    if (!refreshed) {
+      throw new Error('Сессия истекла. Необходима повторная авторизация.');
+    }
+  }
+
   // Подготовка заголовков
-  const headers: HeadersInit = {
-    ...fetchOptions.headers,
-  };
+  const headers: Record<string, string> = {};
+
+  // Приводим headers из RequestInit к обычному объекту
+  if (fetchOptions.headers) {
+    const original = fetchOptions.headers;
+
+    if (original instanceof Headers) {
+      original.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else if (Array.isArray(original)) {
+      for (const [key, value] of original) {
+        headers[key] = value;
+      }
+    } else {
+      Object.assign(headers, original as Record<string, string>);
+    }
+  }
 
   // Добавляем Content-Type только если это не FormData
   if (!(fetchOptions.body instanceof FormData)) {
@@ -71,7 +88,7 @@ export async function apiFetch(
   // Выполняем запрос
   let response = await fetch(url, {
     ...fetchOptions,
-    headers,
+    headers: headers as HeadersInit,
   });
 
   // Если получили 401 и есть refresh token, пытаемся обновить токены
@@ -84,10 +101,10 @@ export async function apiFetch(
       if (newAccessToken) {
         headers['Authorization'] = `Bearer ${newAccessToken}`;
       }
-      
+
       response = await fetch(url, {
         ...fetchOptions,
-        headers,
+        headers: headers as HeadersInit,
       });
     } else {
       // Если не удалось обновить, очищаем авторизацию
