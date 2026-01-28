@@ -60,11 +60,12 @@ SELECT
     AND tct.created_at >= NOW() - INTERVAL '30 days'
   ) as usage_count_30d,
   (
-    SELECT COALESCE(SUM(tct.consumed_tokens), 0)  -- ✅ Фактически списанные токены
+    SELECT COALESCE(SUM((tct.metadata->>'consumed_tokens')::INTEGER), 0)  -- ✅ Фактически списанные токены из JSON
     FROM token_consumption_tasks tct    -- ✅ Правильная таблица
     WHERE tct.user_id = u.id::text
     AND tct.status = 'completed'        -- ✅ Только завершенные задачи
     AND tct.completed_at >= NOW() - INTERVAL '30 days'  -- ✅ По дате завершения
+    AND tct.metadata ? 'consumed_tokens'  -- ✅ Проверка наличия ключа в JSON
   ) as tokens_used_30d
 FROM users u
 WHERE u.id = '{{ $('Call Check JWT').item.json.user_id }}'::uuid;
@@ -76,8 +77,9 @@ WHERE u.id = '{{ $('Call Check JWT').item.json.user_id }}'::uuid;
 |----------|----------|-----------|
 | **Таблица** | `token_transactions` | `token_consumption_tasks` |
 | **Фильтр типа** | `transaction_type = 'usage'` | `status = 'completed'` |
-| **Подсчет токенов** | `SUM(ABS(tt.amount))` | `SUM(tct.consumed_tokens)` |
+| **Подсчет токенов** | `SUM(ABS(tt.amount))` | `SUM((tct.metadata->>'consumed_tokens')::INTEGER)` |
 | **Дата для tokens_used_30d** | `created_at` | `completed_at` |
+| **Проверка JSON** | - | `tct.metadata ? 'consumed_tokens'` |
 
 ## 🔧 Как применить исправление
 
@@ -103,6 +105,41 @@ WHERE u.id = '{{ $('Call Check JWT').item.json.user_id }}'::uuid;
 После применения исправления на странице `https://hr.linkeon.io/buy-tokens` будет отображаться **корректная статистика**:
 - **usage_count_30d** - реальное количество завершенных задач списания за 30 дней
 - **tokens_used_30d** - реальная сумма списанных токенов за 30 дней
+
+## 📋 Структура таблицы `token_consumption_tasks`
+
+```sql
+CREATE TABLE token_consumption_tasks (
+  id UUID PRIMARY KEY,
+  execution_id TEXT,              -- ID выполнения в AI системе
+  user_id TEXT,                   -- ID пользователя
+  tokens_to_consume INTEGER,      -- Запрошенное количество токенов
+  status task_status_enum,        -- 'pending', 'completed', 'failed'
+  model VARCHAR(255),             -- Модель AI (gpt-4, claude-3, etc.)
+  metadata JSONB,                 -- JSON с дополнительными данными
+  created_at TIMESTAMP,           -- Дата создания задачи
+  completed_at TIMESTAMP,         -- Дата завершения задачи
+  error_message TEXT              -- Сообщение об ошибке (если есть)
+);
+```
+
+### Важно о колонке `metadata`
+
+Фактически списанное количество токенов хранится в **JSON поле `metadata`**, а не в отдельной колонке:
+
+```json
+{
+  "consumed_tokens": 3835,        // ✅ Фактически списано
+  "requested_tokens": 3835,       // Запрошено
+  "previous_balance": 10000,      // Баланс до списания
+  "new_balance": 6165,            // Баланс после списания
+  "model": "gpt-4"
+}
+```
+
+**Почему так?**
+- `tokens_to_consume` может отличаться от фактически списанного, если баланса было недостаточно
+- Например: запрошено 1000, но баланс был 500 → списано 500
 
 ## 📊 Архитектура использования токенов
 
