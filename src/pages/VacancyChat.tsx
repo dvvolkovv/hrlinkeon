@@ -16,16 +16,30 @@ interface Message {
 export function VacancyChat() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const storageKey = `vacancy_chat_${id}`;
+  
+  // Загружаем историю из localStorage при инициализации
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const savedMessages = localStorage.getItem(storageKey);
+    return savedMessages ? JSON.parse(savedMessages) : [];
+  });
   const [isProcessing, setIsProcessing] = useState(false);
   const isInitialized = useRef(false);
+
+  // Сохраняем историю в localStorage при каждом изменении messages
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(messages));
+  }, [messages, storageKey]);
 
   useEffect(() => {
     if (isInitialized.current) return;
     isInitialized.current = true;
 
-    sendInitialMessage();
-  }, []);
+    // Отправляем начальное сообщение только если истории нет
+    if (messages.length === 0) {
+      sendInitialMessage();
+    }
+  }, [messages.length]);
 
   const sendInitialMessage = async () => {
     const userId = getUserId();
