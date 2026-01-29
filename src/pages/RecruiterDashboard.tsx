@@ -30,9 +30,40 @@ export function RecruiterDashboard() {
   const [vacancyToDelete, setVacancyToDelete] = useState<Vacancy | null>(null);
   const [updatingVacancyId, setUpdatingVacancyId] = useState<string | null>(null);
   const [publishingVacancyId, setPublishingVacancyId] = useState<string | null>(null);
+  const [balanceUpdating, setBalanceUpdating] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
+  }, []);
+
+  // Автоматическое обновление баланса токенов каждые 10 секунд
+  useEffect(() => {
+    const loadBalance = async () => {
+      try {
+        setBalanceUpdating(true);
+        const userId = getUserId();
+        if (!userId) return;
+
+        const balanceResponse = await apiGet<{ success: boolean; data: { tokens: number } }>('/api/v2/user/balance');
+        if (balanceResponse.success && balanceResponse.data) {
+          setTokenBalance(balanceResponse.data.tokens || 0);
+        }
+      } catch (error) {
+        console.error('Error loading token balance:', error);
+      } finally {
+        // Задержка для видимости анимации
+        setTimeout(() => setBalanceUpdating(false), 300);
+      }
+    };
+
+    // Загружаем баланс сразу
+    loadBalance();
+
+    // Устанавливаем интервал для обновления каждые 10 секунд
+    const intervalId = setInterval(loadBalance, 10000);
+
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(intervalId);
   }, []);
 
   const loadDashboardData = async () => {
@@ -309,10 +340,13 @@ export function RecruiterDashboard() {
             <Card className="bg-gradient-to-br from-forest-500 to-forest-600">
               <CardContent className="py-4 px-6">
                 <div className="flex items-center gap-3">
-                  <Coins className="w-8 h-8 text-white" />
+                  <Coins className={`w-8 h-8 text-white transition-transform duration-300 ${balanceUpdating ? 'scale-110 rotate-12' : 'scale-100'}`} />
                   <div>
-                    <p className="text-xs text-forest-100">Баланс токенов</p>
-                    <p className="text-2xl font-bold text-white">
+                    <p className="text-xs text-forest-100">
+                      Баланс токенов
+                      {balanceUpdating && <span className="ml-1 inline-block w-1 h-1 bg-forest-100 rounded-full animate-pulse"></span>}
+                    </p>
+                    <p className={`text-2xl font-bold text-white transition-all duration-300 ${balanceUpdating ? 'scale-105' : 'scale-100'}`}>
                       {new Intl.NumberFormat('ru-RU').format(tokenBalance)}
                     </p>
                   </div>

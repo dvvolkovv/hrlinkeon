@@ -34,10 +34,41 @@ export function BuyTokens() {
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [balanceUpdating, setBalanceUpdating] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Автоматическое обновление баланса токенов каждые 10 секунд
+  useEffect(() => {
+    const loadBalance = async () => {
+      try {
+        setBalanceUpdating(true);
+        const userId = localStorage.getItem('user_id');
+        if (!userId) return;
+
+        const balanceResponse = await apiGet<{ success: boolean; data: TokenBalance }>('/api/v2/user/balance');
+        if (balanceResponse.success && balanceResponse.data) {
+          setBalance(balanceResponse.data);
+        }
+      } catch (error) {
+        console.error('Error loading token balance:', error);
+      } finally {
+        // Задержка для видимости анимации
+        setTimeout(() => setBalanceUpdating(false), 300);
+      }
+    };
+
+    // Загружаем баланс сразу
+    loadBalance();
+
+    // Устанавливаем интервал для обновления каждые 10 секунд
+    const intervalId = setInterval(loadBalance, 10000);
+
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(intervalId);
   }, []);
 
   const validateEmail = (email: string): boolean => {
@@ -174,8 +205,13 @@ export function BuyTokens() {
             <Card className="max-w-md mx-auto mb-6">
               <CardContent className="py-6">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-2">Текущий баланс</p>
-                  <p className="text-4xl font-bold text-forest-600">{formatNumber(balance.tokens)}</p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Текущий баланс
+                    {balanceUpdating && <span className="ml-1 inline-block w-1 h-1 bg-forest-500 rounded-full animate-pulse"></span>}
+                  </p>
+                  <p className={`text-4xl font-bold text-forest-600 transition-all duration-300 ${balanceUpdating ? 'scale-105' : 'scale-100'}`}>
+                    {formatNumber(balance.tokens)}
+                  </p>
                   <p className="text-sm text-gray-500 mt-2">токенов</p>
                   {balance.usage_stats && balance.usage_stats.tokens_used_30d > 0 && (
                     <p className="text-xs text-gray-500 mt-2">
