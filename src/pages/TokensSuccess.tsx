@@ -22,6 +22,10 @@ export function TokensSuccess() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Заменяем текущую запись в истории, чтобы при нажатии "Назад" 
+    // пользователь не возвращался на эту страницу
+    window.history.replaceState(null, '', '/tokens/success');
+    
     verifyPayment();
   }, []);
 
@@ -126,14 +130,14 @@ export function TokensSuccess() {
                 <div className="flex gap-3 mt-8">
                   <Button
                     variant="outline"
-                    onClick={() => navigate('/buy-tokens')}
+                    onClick={() => navigate('/buy-tokens', { replace: true })}
                     className="flex-1"
                   >
                     <Coins className="w-4 h-4 mr-2" />
                     Купить еще
                   </Button>
                   <Button
-                    onClick={() => navigate('/recruiter')}
+                    onClick={() => navigate('/recruiter', { replace: true })}
                     className="flex-1"
                   >
                     К вакансиям
@@ -160,11 +164,11 @@ export function TokensSuccess() {
             <div className="flex gap-3 max-w-md mx-auto">
               <Button
                 variant="outline"
-                onClick={() => navigate('/buy-tokens')}
+                onClick={() => navigate('/recruiter', { replace: true })}
                 className="flex-1"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Вернуться
+                К вакансиям
               </Button>
               <Button
                 onClick={() => verifyPayment()}
@@ -190,11 +194,11 @@ export function TokensSuccess() {
             </p>
 
             <Button
-              onClick={() => navigate('/buy-tokens')}
+              onClick={() => navigate('/recruiter', { replace: true })}
               className="mx-auto"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              К покупке токенов
+              К вакансиям
             </Button>
           </div>
         );
@@ -217,11 +221,11 @@ export function TokensSuccess() {
           <div className="text-center mt-6">
             <Button
               variant="ghost"
-              onClick={() => navigate('/buy-tokens')}
+              onClick={() => navigate('/recruiter', { replace: true })}
               className="text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Вернуться к покупке токенов
+              К вакансиям
             </Button>
           </div>
         )}
