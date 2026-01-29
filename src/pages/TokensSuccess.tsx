@@ -27,13 +27,21 @@ export function TokensSuccess() {
 
   const verifyPayment = async () => {
     try {
-      // Получаем payment_id из localStorage (сохранили при создании платежа)
-      const paymentId = localStorage.getItem('pending_payment_id');
+      // Получаем payment_id из URL параметров (приоритет) или localStorage
+      let paymentId = searchParams.get('payment_id') || searchParams.get('paymentId');
+      
+      if (!paymentId) {
+        // Если в URL нет, пробуем localStorage
+        paymentId = localStorage.getItem('pending_payment_id');
+      }
 
       if (!paymentId) {
+        console.log('[TokensSuccess] No payment_id found in URL or localStorage');
         setStatus('not_found');
         return;
       }
+
+      console.log(`[TokensSuccess] Verifying payment: ${paymentId}`);
 
       // Проверяем статус платежа
       const response = await apiPost<VerifyResponse>('/api/v2/yookassa/verify-payment', {
@@ -46,8 +54,14 @@ export function TokensSuccess() {
         setStatus('success');
         // Очищаем сохраненный payment_id
         localStorage.removeItem('pending_payment_id');
+        console.log(`[TokensSuccess] Payment ${paymentId} succeeded, tokens added: ${response.tokens_added}`);
+      } else if (response.status === 'pending' || response.status === 'waiting_for_capture') {
+        // Платеж еще обрабатывается, повторяем через 2 секунды
+        console.log(`[TokensSuccess] Payment ${paymentId} still ${response.status}, retrying...`);
+        setTimeout(() => verifyPayment(), 2000);
       } else {
         setStatus('failed');
+        console.log(`[TokensSuccess] Payment ${paymentId} failed with status: ${response.status}`);
       }
     } catch (error) {
       console.error('Error verifying payment:', error);
