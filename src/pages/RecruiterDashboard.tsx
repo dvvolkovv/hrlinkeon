@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Briefcase, Users, TrendingUp, Clock, CheckCircle, XCircle, UserCheck, Eye, Plus, BarChart3, Share2, Check, Coins, LogOut, CreditCard as Edit, MessageSquare, Trash2, AlertTriangle, Lock, Unlock } from 'lucide-react';
+import { Briefcase, Users, TrendingUp, Clock, CheckCircle, XCircle, UserCheck, Eye, Plus, BarChart3, Share2, Check, Coins, LogOut, CreditCard as Edit, MessageSquare, Trash2, AlertTriangle, Lock, Unlock, UserX } from 'lucide-react';
 import { Vacancy } from '../types/database';
 import { apiPost, apiDelete, apiPatch, apiGet } from '../lib/api';
 import { getUserId } from '../lib/auth';
@@ -31,6 +31,8 @@ export function RecruiterDashboard() {
   const [updatingVacancyId, setUpdatingVacancyId] = useState<string | null>(null);
   const [publishingVacancyId, setPublishingVacancyId] = useState<string | null>(null);
   const [balanceUpdating, setBalanceUpdating] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -225,6 +227,20 @@ export function RecruiterDashboard() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      setDeletingAccount(true);
+      await apiDelete('/api/v2/account/delete');
+      localStorage.clear();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      alert(error instanceof Error ? error.message : 'Не удалось удалить аккаунт');
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   const handleUpdateVacancyStatus = async (vacancyId: string, newStatus: 'published' | 'closed') => {
     const userId = getUserId();
     if (!userId) {
@@ -334,6 +350,14 @@ export function RecruiterDashboard() {
                 >
                   <LogOut className="w-5 h-5" />
                   Выход
+                </Button>
+                <Button
+                  variant="outline"
+                  className="gap-2 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  onClick={() => setShowDeleteAccountModal(true)}
+                >
+                  <UserX className="w-5 h-5" />
+                  Удалить аккаунт
                 </Button>
               </div>
             </div>
@@ -670,6 +694,48 @@ export function RecruiterDashboard() {
                   className="flex-1 bg-red-600 hover:bg-red-700"
                 >
                   {deletingVacancyId === vacancyToDelete.id ? 'Удаление...' : 'Удалить'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showDeleteAccountModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Удалить аккаунт?</h3>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Вы уверены, что хотите удалить свой аккаунт?
+              </p>
+              <p className="text-sm text-gray-500">
+                Это действие нельзя отменить. Все ваши вакансии, кандидаты и данные будут безвозвратно удалены.
+              </p>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteAccountModal(false)}
+                  disabled={deletingAccount}
+                  className="flex-1"
+                >
+                  Отмена
+                </Button>
+                <Button
+                  onClick={handleDeleteAccount}
+                  disabled={deletingAccount}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  {deletingAccount ? 'Удаление...' : 'Удалить аккаунт'}
                 </Button>
               </div>
             </CardContent>
