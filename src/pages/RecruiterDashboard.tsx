@@ -230,7 +230,7 @@ export function RecruiterDashboard() {
   const handleDeleteAccount = async () => {
     try {
       setDeletingAccount(true);
-      await apiDelete('/api/v2/account/delete');
+      await apiPost('/api/v2/account/delete');
       localStorage.clear();
       navigate('/login');
     } catch (error) {
