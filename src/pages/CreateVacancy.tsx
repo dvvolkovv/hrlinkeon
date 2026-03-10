@@ -322,7 +322,7 @@ export function CreateVacancy() {
         };
       }
 
-      await apiPatch<{ success: boolean }>(`/api/v2/vacancy/update`, {
+      await apiPost<{ success: boolean }>(`/api/v2/vacancy/update`, {
         vacancy_id: currentVacancyId,
         user_id: userId,
         status: 'draft',
