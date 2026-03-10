@@ -251,12 +251,12 @@ export function RecruiterDashboard() {
     try {
       setUpdatingVacancyId(vacancyId);
 
-      await apiPatch<{ success: boolean; message?: string }>(`/api/v2/vacancies`, {
+      await apiPatch<{ success: boolean; message?: string }>(`/api/v2/vacancy/update`, {
+        vacancy_id: vacancyId,
         user_id: userId,
         status: newStatus,
         vacancy_data: {},
         extended_data: {
-          vacancy_id: vacancyId,
           type: 'manual',
           is_ready: true,
         },

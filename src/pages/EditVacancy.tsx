@@ -215,7 +215,7 @@ export function EditVacancy() {
         extended_data: extendedData,
       };
 
-      await apiPatch<{ success: boolean }>(`/api/v2/vacancies`, payload);
+      await apiPatch<{ success: boolean }>(`/api/v2/vacancy/update`, payload);
 
       setSuccess('Изменения успешно сохранены');
       window.scrollTo({ top: 0, behavior: 'smooth' });

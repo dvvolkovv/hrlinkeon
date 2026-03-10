@@ -322,7 +322,8 @@ export function CreateVacancy() {
         };
       }
 
-      await apiPatch<{ success: boolean }>(`/api/v2/vacancies/${currentVacancyId}`, {
+      await apiPatch<{ success: boolean }>(`/api/v2/vacancy/update`, {
+        vacancy_id: currentVacancyId,
         user_id: userId,
         status: 'draft',
         title: form.title,
