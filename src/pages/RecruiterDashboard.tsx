@@ -251,7 +251,7 @@ export function RecruiterDashboard() {
     try {
       setUpdatingVacancyId(vacancyId);
 
-      await apiPost<{ success: boolean; message?: string }>(`/api/v2/vacancy/update`, {
+      await apiPatch<{ success: boolean; message?: string }>(`/api/v2/vacancies`, {
         vacancy_id: vacancyId,
         user_id: userId,
         status: newStatus,

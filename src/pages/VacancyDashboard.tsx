@@ -318,7 +318,7 @@ export function VacancyDashboard() {
     try {
       setUpdatingVacancyStatus(true);
 
-      await apiPost<{ success: boolean; message?: string }>(`/api/v2/vacancy/update`, {
+      await apiPatch<{ success: boolean; message?: string }>(`/api/v2/vacancies`, {
         vacancy_id: vacancyId,
         status: newStatus,
         vacancy_data: {},
